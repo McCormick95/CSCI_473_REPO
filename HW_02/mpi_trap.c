@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 
    // Print the elapsed time
    if (my_rank == 0) {
-      printf("Elapsed time: %f seconds\n", elapsed_time);
+      printf("T: %f \n", elapsed_time);
    }
 
    /* Shut down MPI */
