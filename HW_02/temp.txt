@@ -1,18 +1,18 @@
-rank = 1, local_a= 62.50, local_b= 125.00, local_int= 9.04 
-rank = 12, local_a= 750.00, local_b= 812.50, local_int= -15.99 
-rank = 0, local_a= 0.00, local_b= 62.50, local_int= 3.13 
-rank = 6, local_a= 375.00, local_b= 437.50, local_int= 15.77 
-rank = 7, local_a= 437.50, local_b= 500.00, local_int= 11.49 
-rank = 14, local_a= 875.00, local_b= 937.50, local_int= -18.83 
-rank = 2, local_a= 125.00, local_b= 187.50, local_int= 13.96 
 rank = 8, local_a= 500.00, local_b= 562.50, local_int= 5.97 
-rank = 10, local_a= 625.00, local_b= 687.50, local_int= -6.36 
-rank = 11, local_a= 687.50, local_b= 750.00, local_int= -11.82 
-rank = 15, local_a= 937.50, local_b= 1000.00, local_int= -17.19 
-rank = 4, local_a= 250.00, local_b= 312.50, local_int= 18.87 
-rank = 5, local_a= 312.50, local_b= 375.00, local_int= 18.32 
-rank = 13, local_a= 812.50, local_b= 875.00, local_int= -18.42 
-rank = 3, local_a= 187.50, local_b= 250.00, local_int= 17.36 
 rank = 9, local_a= 562.50, local_b= 625.00, local_int= -0.21 
+rank = 2, local_a= 125.00, local_b= 187.50, local_int= 13.96 
+rank = 3, local_a= 187.50, local_b= 250.00, local_int= 17.36 
+rank = 7, local_a= 437.50, local_b= 500.00, local_int= 11.49 
+rank = 10, local_a= 625.00, local_b= 687.50, local_int= -6.36 
+rank = 12, local_a= 750.00, local_b= 812.50, local_int= -15.99 
+rank = 1, local_a= 62.50, local_b= 125.00, local_int= 9.04 
+rank = 15, local_a= 937.50, local_b= 1000.00, local_int= -17.19 
+rank = 5, local_a= 312.50, local_b= 375.00, local_int= 18.32 
+rank = 14, local_a= 875.00, local_b= 937.50, local_int= -18.83 
+rank = 4, local_a= 250.00, local_b= 312.50, local_int= 18.87 
+rank = 6, local_a= 375.00, local_b= 437.50, local_int= 15.77 
+rank = 11, local_a= 687.50, local_b= 750.00, local_int= -11.82 
+rank = 0, local_a= 0.00, local_b= 62.50, local_int= 3.13 
+rank = 13, local_a= 812.50, local_b= 875.00, local_int= -18.42 
 n = 500000000 
-T: 1.647089 
+T: 1.751036 
