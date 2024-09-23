@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-data = pd.read_csv('expanse_compute_results.txt')
+# data = pd.read_csv('expanse_compute_results.txt')
+data = pd.read_csv('results.txt')
 font_size = 15
 
 N_1 = data [['P', 'T']][data['N'] == 150000000]
