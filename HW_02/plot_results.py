@@ -11,6 +11,8 @@ N_3 = data [['P', 'T']][data['N'] == 350000000]
 N_4 = data [['P', 'T']][data['N'] == 450000000]
 N_5 = data [['P', 'T']][data['N'] == 550000000]
 
+
+# TIME VS PROCESS COUNT
 plt.title("TIME vs PROCESS COUNT", fontsize = font_size)
 plt.xlabel("PROCESS COUNT (P)", fontsize = font_size)
 plt.ylabel("TIME (T)", fontsize = font_size)
@@ -28,6 +30,62 @@ plt.legend(fontsize = font_size)
 plt.xticks(fontsize = font_size)
 plt.yticks(fontsize = font_size)
 
-plt.savefig('T_VS_P.png', bbox_inches='tight')
-print('TIME vs PROCESS COUNT saved as T_VS_P.png')
+plt.savefig('timing_550000000_16.png', bbox_inches='tight')
+print('TIME vs PROCESS COUNT saved as timing_550000000_16.png')
 # plt.show()
+
+
+
+# SPEEDUP VS PROCESS COUNT
+# clears the figure
+plt.clf()
+
+N_all = [N_1, N_2, N_3, N_4, N_5]
+for df in N_all:
+     T_1 = df[df['P'] == 1]['T'].values[0]
+     df['SPEEDUP'] = T_1 / df['T']
+
+plt.title("SPEEDUP VS PROCESS COUNT", fontsize = font_size)
+plt.xlabel("PROCESS COUNT (P)", fontsize = font_size)
+plt.ylabel("SPEEDUP", fontsize = font_size)
+
+plt.plot(N_1['P'], N_1['SPEEDUP'], label = '150M', marker='o')
+plt.plot(N_2['P'], N_2['SPEEDUP'], label = '250M', marker='x')
+plt.plot(N_3['P'], N_3['SPEEDUP'], label = '350M', marker='v')
+plt.plot(N_4['P'], N_4['SPEEDUP'], label = '450M', marker='*')
+plt.plot(N_5['P'], N_5['SPEEDUP'], label = '550M', marker='+')
+plt.plot(N_1['P'], N_1['P'], label= "IDEAL", marker = '.', linestyle ='dotted', color = 'black')
+plt.legend(fontsize = font_size)
+
+plt.xticks(fontsize = font_size)
+plt.yticks(fontsize = font_size)
+
+plt.savefig('speedup_550000000_16.png', bbox_inches='tight')
+print('SPEEDUP VS PROCESS COUNT saved as speedup_550000000_16.png')
+
+
+
+# EFFICIENCY VS PROCESS COUNT
+# clears the figure
+plt.clf()
+
+for df in N_all:
+    df['EFFICIENCY'] = df['SPEEDUP']/df['P']
+
+plt.title("EFFICIENCY VS PROCESS COUNT", fontsize = font_size)
+plt.xlabel("PROCESS COUNT (P)", fontsize = font_size)
+plt.ylabel("EFFICIENCY", fontsize = font_size)
+
+plt.plot(N_1['P'], N_1['EFFICIENCY'], label = '150M', marker='o')
+plt.plot(N_2['P'], N_2['EFFICIENCY'], label = '250M', marker='x')
+plt.plot(N_3['P'], N_3['EFFICIENCY'], label = '350M', marker='v')
+plt.plot(N_4['P'], N_4['EFFICIENCY'], label = '450M', marker='*')
+plt.plot(N_5['P'], N_5['EFFICIENCY'], label = '550M', marker='+')
+plt.plot(N_1['P'], [1]*len(N_1['P']), label= "IDEAL", marker = '.', linestyle ='dotted', color = 'black')
+plt.legend(fontsize = font_size)
+
+plt.xticks(fontsize = font_size)
+plt.yticks(fontsize = font_size)
+
+plt.savefig('efficiency_550000000_16.png', bbox_inches='tight')
+print('EFFICIENCY VS PROCESS COUNT saved as efficiency_550000000_16.png')
