@@ -90,11 +90,8 @@ int main(int argc, char *argv[]) {
    // Get_input(my_rank, comm_sz, &a, &b, &n);
 
    h = (b-a)/n;          /* h is the same for all processes */
-   //local_n = n/comm_sz;  /* So is the number of trapezoids  */
    local_n = BLOCK_SIZE(my_rank, comm_sz, n);
-   /* Length of each process' interval of
-    * integration = local_n*h.  So my interval
-    * starts at: */
+   
    local_a = a + BLOCK_LOW(my_rank, comm_sz, n) * h;
    local_b = local_a + local_n*h;
    local_int = Trap(f_choice, local_a, local_b, local_n, h);
