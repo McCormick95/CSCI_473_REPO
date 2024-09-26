@@ -4,24 +4,12 @@
 #include <math.h>
 #include "trap.h"
 
-/*------------------------------------------------------------------
- * Function:     Trap
- * Purpose:      Serial function for estimating a definite integral 
- *               using the trapezoidal rule
- * Input args:   left_endpt
- *               right_endpt
- *               trap_count 
- *               base_len
- * Return val:   Trapezoidal rule estimate of integral from
- *               left_endpt to right_endpt using trap_count
- *               trapezoids
- */
 double Trap(
       int f_choice,
-      double left_endpt  /* in */, 
-      double right_endpt /* in */, 
-      int    trap_count  /* in */, 
-      double base_len    /* in */) {
+      double left_endpt, 
+      double right_endpt, 
+      int    trap_count, 
+      double base_len) {
    double estimate, x; 
    int i;
 
@@ -36,11 +24,6 @@ double Trap(
 } /*  Trap  */
 
 
-/*------------------------------------------------------------------
- * Function:    f
- * Purpose:     Compute value of function to be integrated
- * Input args:  x
- */
 double f(int f_choice, double x) {
    if(f_choice == 1){
       return x;
@@ -52,3 +35,5 @@ double f(int f_choice, double x) {
       return sin(x) * (180.0/M_PI);
    }
 } /* f */
+
+

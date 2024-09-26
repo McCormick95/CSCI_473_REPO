@@ -16,7 +16,7 @@ N_5 = data [['P', 'T']][data['N'] == 550000000]
 # TIME VS PROCESS COUNT
 plt.title("TIME vs PROCESS COUNT", fontsize = font_size)
 plt.xlabel("PROCESS COUNT (P)", fontsize = font_size)
-plt.ylabel("TIME (T)", fontsize = font_size)
+plt.ylabel("TIME (S)", fontsize = font_size)
 
 IDEAL_T = N_1["T"].values[0] / N_1['P']
 
