@@ -214,11 +214,7 @@ void *my_malloc (
 }
 
 void my_allocate2d(int id, int local_rows, void *storage, int datum_size, int *n, void **lptr, void *rptr, void ***subs){
-   /* Dynamically allocate matrix. Allow double subscripting
-      through 'a'. */
-
-   *storage = (void *) my_malloc (id,
-       local_rows * *n * datum_size);
+   *storage = (void *) my_malloc (id, local_rows * *n * datum_size);
    *subs = (void **) my_malloc (id, local_rows * PTR_SIZE);
 
    lptr = (void *) &(*subs[0]);
@@ -227,4 +223,9 @@ void my_allocate2d(int id, int local_rows, void *storage, int datum_size, int *n
       *(lptr++)= (void *) rptr;
       rptr += *n * datum_size;
    }
+}
+
+void my_free(void **A){
+   
+
 }

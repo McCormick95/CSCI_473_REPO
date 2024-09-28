@@ -30,3 +30,5 @@ void print_submatrix (void **a, MPI_Datatype dtype, int rows, int cols);
 void *my_malloc (int id, int bytes);
 
 void my_allocate2d(int id, int local_rows, void *storage, int datum_size, int *n, void **lptr, void *rptr, void ***subs);
+
+void my_free(void **A);
