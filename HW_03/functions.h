@@ -23,4 +23,10 @@ void read_row_striped_matrix (char *, void ***,
 void print_row_striped_matrix (void **, MPI_Datatype, int,
         int, MPI_Comm);
 
+int get_size (MPI_Datatype t);
 
+void print_submatrix (void **a, MPI_Datatype dtype, int rows, int cols);
+
+void *my_malloc (int id, int bytes);
+
+void my_allocate2d(int id, int local_rows, void *storage, int datum_size, int *n, void **lptr, void *rptr, void ***subs);

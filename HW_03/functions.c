@@ -30,6 +30,8 @@ void read_row_striped_matrix (
    MPI_Status   status;       /* Result of receive */
    int          x;            /* Result of read */
 
+   void *storage;
+
    MPI_Comm_size (comm, &p);
    MPI_Comm_rank (comm, &id);
    datum_size = get_size (dtype);
@@ -56,16 +58,18 @@ void read_row_striped_matrix (
    /* Dynamically allocate matrix. Allow double subscripting
       through 'a'. */
 
-   *storage = (void *) my_malloc (id,
-       local_rows * *n * datum_size);
-   *subs = (void **) my_malloc (id, local_rows * PTR_SIZE);
+   // *storage = (void *) my_malloc (id,
+   //     local_rows * *n * datum_size);
+   // *subs = (void **) my_malloc (id, local_rows * PTR_SIZE);
 
-   lptr = (void *) &(*subs[0]);
-   rptr = (void *) *storage;
-   for (i = 0; i < local_rows; i++) {
-      *(lptr++)= (void *) rptr;
-      rptr += *n * datum_size;
-   }
+   // lptr = (void *) &(*subs[0]);
+   // rptr = (void *) *storage;
+   // for (i = 0; i < local_rows; i++) {
+   //    *(lptr++)= (void *) rptr;
+   //    rptr += *n * datum_size;
+   // }
+
+   my_allocate2d(id, local_rows, *storage, datum_size, *n, **lptr, *rptr, ***subs);
 
    /* Process p-1 reads blocks of rows from file and
       sends each block to the correct destination process.
@@ -187,4 +191,40 @@ int get_size (MPI_Datatype t) {
    printf ("Error: Unrecognized argument to 'get_size'\n");
    fflush (stdout);
    MPI_Abort (MPI_COMM_WORLD, TYPE_ERROR);
+}
+
+/*
+ *   Function 'my_malloc' is called when a process wants
+ *   to allocate some space from the heap. If the memory
+ *   allocation fails, the process prints an error message
+ *   and then aborts execution of the program.
+ */
+
+void *my_malloc (
+   int id,     /* IN - Process rank */
+   int bytes)  /* IN - Bytes to allocate */
+{
+   void *buffer;
+   if ((buffer = malloc ((size_t) bytes)) == NULL) {
+      printf ("Error: Malloc failed for process %d\n", id);
+      fflush (stdout);
+      MPI_Abort (MPI_COMM_WORLD, MALLOC_ERROR);
+   }
+   return buffer;
+}
+
+void my_allocate2d(int id, int local_rows, void *storage, int datum_size, int *n, void **lptr, void *rptr, void ***subs){
+   /* Dynamically allocate matrix. Allow double subscripting
+      through 'a'. */
+
+   *storage = (void *) my_malloc (id,
+       local_rows * *n * datum_size);
+   *subs = (void **) my_malloc (id, local_rows * PTR_SIZE);
+
+   lptr = (void *) &(*subs[0]);
+   rptr = (void *) *storage;
+   for (i = 0; i < local_rows; i++) {
+      *(lptr++)= (void *) rptr;
+      rptr += *n * datum_size;
+   }
 }
