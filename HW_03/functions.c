@@ -34,9 +34,6 @@ void read_row_striped_matrix (
    MPI_Comm_rank (comm, &id);
    datum_size = get_size (dtype);
 
-   /* Process p-1 opens file, reads size of matrix,
-      and broadcasts matrix dimensions to other procs */
-
    if (id == (p-1)) {
       infileptr = fopen (s, "r");
       if (infileptr == NULL) *m = 0;
@@ -53,12 +50,15 @@ void read_row_striped_matrix (
 
    local_rows = BLOCK_SIZE(id,p,*m);
 
+   if(p > *m){
+        if(id == 0){
+            printf("ERROR: number of processes (%d) exceeds number of rows (%d). Exiting... \n", p, *m);
+        }
+        MPI_Abort( comm, EXIT_FAILURE); 
+   }
+
    void *storage;
    my_allocate2d(id, local_rows, (void **)&storage, datum_size, n, subs);
-
-   /* Process p-1 reads blocks of rows from file and
-      sends each block to the correct destination process.
-      The last block it keeps. */
 
    if (id == (p-1)) {
       for (i = 0; i < p-1; i++) {
@@ -75,10 +75,6 @@ void read_row_striped_matrix (
          DATA_MSG, comm, &status);
 }
 
-/*
- *   Print a matrix that is distributed in row-striped
- *   fashion among the processes in a communicator.
- */
 
 void print_row_striped_matrix (
    void **a,            /* IN - 2D array */

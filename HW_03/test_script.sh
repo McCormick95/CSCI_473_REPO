@@ -32,12 +32,10 @@ run_test() {
 
 
 row_array=("100" "500" "1000")
-num_p=("1" "3" "5" "10" "15" "25" "50" "100")
-
 
 # Test larger matrices
 for rows in "${row_array[@]}"; do
-    for np in "${num_p[@]}"; do
+    for np in {1..100}; do
         cols=100
         run_test $rows $cols $np
     done
