@@ -24,13 +24,11 @@ void read_row_striped_matrix (
    int          id;           /* Process rank */
    FILE        *infileptr;    /* Input file pointer */
    int          local_rows;   /* Rows on this proc */
-   void       **lptr;         /* Pointer into 'subs' */
    int          p;            /* Number of processes */
-   void        *rptr;         /* Pointer into 'storage' */
    MPI_Status   status;       /* Result of receive */
    int          x;            /* Result of read */
 
-   void *storage;
+   
 
    MPI_Comm_size (comm, &p);
    MPI_Comm_rank (comm, &id);
@@ -55,21 +53,8 @@ void read_row_striped_matrix (
 
    local_rows = BLOCK_SIZE(id,p,*m);
 
-   /* Dynamically allocate matrix. Allow double subscripting
-      through 'a'. */
-
-   // *storage = (void *) my_malloc (id,
-   //     local_rows * *n * datum_size);
-   // *subs = (void **) my_malloc (id, local_rows * PTR_SIZE);
-
-   // lptr = (void *) &(*subs[0]);
-   // rptr = (void *) *storage;
-   // for (i = 0; i < local_rows; i++) {
-   //    *(lptr++)= (void *) rptr;
-   //    rptr += *n * datum_size;
-   // }
-
-   my_allocate2d(id, local_rows, *storage, datum_size, *n, **lptr, *rptr, ***subs);
+   void *storage;
+   my_allocate2d(id, local_rows, (void **)&storage, datum_size, n, subs);
 
    /* Process p-1 reads blocks of rows from file and
       sends each block to the correct destination process.
@@ -77,16 +62,16 @@ void read_row_striped_matrix (
 
    if (id == (p-1)) {
       for (i = 0; i < p-1; i++) {
-         x = fread (*storage, datum_size,
+         x = fread (storage, datum_size,
             BLOCK_SIZE(i,p,*m) * *n, infileptr);
-         MPI_Send (*storage, BLOCK_SIZE(i,p,*m) * *n, dtype,
+         MPI_Send (storage, BLOCK_SIZE(i,p,*m) * *n, dtype,
             i, DATA_MSG, comm);
       }
-      x = fread (*storage, datum_size, local_rows * *n,
+      x = fread (storage, datum_size, local_rows * *n,
          infileptr);
       fclose (infileptr);
    } else
-      MPI_Recv (*storage, local_rows * *n, dtype, p-1,
+      MPI_Recv (storage, local_rows * *n, dtype, p-1,
          DATA_MSG, comm, &status);
 }
 
@@ -191,6 +176,8 @@ int get_size (MPI_Datatype t) {
    printf ("Error: Unrecognized argument to 'get_size'\n");
    fflush (stdout);
    MPI_Abort (MPI_COMM_WORLD, TYPE_ERROR);
+
+   return -1;
 }
 
 /*
@@ -213,19 +200,23 @@ void *my_malloc (
    return buffer;
 }
 
-void my_allocate2d(int id, int local_rows, void *storage, int datum_size, int *n, void **lptr, void *rptr, void ***subs){
+void my_allocate2d(int id, int local_rows, void **storage, int datum_size, int *n, void ***subs){
+   void **lptr;
+   void *rptr;
    *storage = (void *) my_malloc (id, local_rows * *n * datum_size);
    *subs = (void **) my_malloc (id, local_rows * PTR_SIZE);
 
    lptr = (void *) &(*subs[0]);
    rptr = (void *) *storage;
+   int i;
    for (i = 0; i < local_rows; i++) {
       *(lptr++)= (void *) rptr;
       rptr += *n * datum_size;
    }
 }
 
-void my_free(void **A){
-   
-
+void my_free(void **ptr) {
+   free(ptr[0]);
+   free(ptr);
 }
+
