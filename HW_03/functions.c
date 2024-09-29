@@ -127,7 +127,7 @@ void print_row_striped_matrix (
          free (b);
          free (bstorage);
       }
-      putchar ('\n');
+      // putchar ('\n');
    } else {
       MPI_Recv (&prompt, 1, MPI_INT, 0, PROMPT_MSG,
          MPI_COMM_WORLD, &status);

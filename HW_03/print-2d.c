@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
                 fclose(file_in);
                 exit(0);
             }
-            printf("%.2f ", temp); 
+            printf("%6.3f ", temp); 
         }
         printf("\n");
     }

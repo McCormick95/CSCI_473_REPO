@@ -7,34 +7,44 @@ run_test() {
     local cols=$2
     local np=$3
     local matrix_file="matrix_${rows}x${cols}.dat"
+    local temp_file_1="temp_file_1"
+    local temp_file_2="temp_file_2"
 
     # Generate the matrix file
     ./make-2d $rows $cols $matrix_file
 
     # Run the MPI program with the specified number of processes
     echo "Running with matrix size ${rows}x${cols} and ${np} processes..."
-    mpirun --oversubscribe -np $np ./test-mpi-read $matrix_file
+    mpirun --oversubscribe -np $np ./test-mpi-read $matrix_file > $temp_file_1
 
     # Optionally print the matrix to verify correctness
-    ./print-2d $matrix_file
+    ./print-2d $matrix_file > $temp_file_2
+
+    # Use diff to compare the files
+    if diff "$temp_file_1" "$temp_file_2" > /dev/null; then
+        echo "TEST ${rows}x${cols} w/ ${np}: The files are the same."
+    else
+        echo "TEST ${rows}x${cols} w/ ${np}: The files are different."
+    fi
+
+    rm "matrix_${rows}x${cols}.dat"
 }
 
-# Test small matrices (10 rows, 6 columns)
-for np in {1..10}; do
-    run_test 10 6 $np
-done
+
+row_array=("100" "500" "1000")
+num_p=("1" "3" "5" "10" "15" "25" "50" "100")
+
 
 # Test larger matrices
-for rows in 500 1000; do
-    for cols in 100 200; do
-        for np in {1..100}; do
-            run_test $rows $cols $np
-        done
-        # Test with oversubscription for larger matrices
-        for np in {1..200}; do
-            run_test $rows $cols $np
-        done
+for rows in "${row_array[@]}"; do
+    for np in "${num_p[@]}"; do
+        cols=100
+        run_test $rows $cols $np
     done
 done
+
+rm "temp_file_1"
+rm "temp_file_2"
+
 
 echo "All tests completed!"
