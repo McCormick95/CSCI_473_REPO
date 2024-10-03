@@ -26,9 +26,6 @@ void read_row_striped_matrix (
    int          local_rows;   /* Rows on this proc */
    int          p;            /* Number of processes */
    MPI_Status   status;       /* Result of receive */
-   int          x;            /* Result of read */
-
-   
 
    MPI_Comm_size (comm, &p);
    MPI_Comm_rank (comm, &id);
@@ -62,12 +59,12 @@ void read_row_striped_matrix (
 
    if (id == (p-1)) {
       for (i = 0; i < p-1; i++) {
-         x = fread (storage, datum_size,
+         fread (storage, datum_size,
             BLOCK_SIZE(i,p,*m) * *n, infileptr);
          MPI_Send (storage, BLOCK_SIZE(i,p,*m) * *n, dtype,
             i, DATA_MSG, comm);
       }
-      x = fread (storage, datum_size, local_rows * *n,
+         fread (storage, datum_size, local_rows * *n,
          infileptr);
       fclose (infileptr);
    } else
@@ -105,31 +102,112 @@ void print_row_striped_matrix (
       if (p > 1) {
          datum_size = get_size (dtype);
          max_block_size = BLOCK_SIZE(p-1,p,m);
-         bstorage = my_malloc (id,
-            max_block_size * n * datum_size);
-         b = (void **) my_malloc (id,
-            max_block_size * datum_size);
+         my_allocate2d(id, local_rows, (void **)&bstorage, datum_size, &n, (void ***)&b);
          b[0] = bstorage;
+   
          for (i = 1; i < max_block_size; i++) {
             b[i] = b[i-1] + n * datum_size;
          }
          for (i = 1; i < p; i++) {
-            MPI_Send (&prompt, 1, MPI_INT, i, PROMPT_MSG,
-               MPI_COMM_WORLD);
-            MPI_Recv (bstorage, BLOCK_SIZE(i,p,m)*n, dtype,
-               i, RESPONSE_MSG, MPI_COMM_WORLD, &status);
+            MPI_Send (&prompt, 1, MPI_INT, i, PROMPT_MSG, MPI_COMM_WORLD);
+            MPI_Recv (bstorage, BLOCK_SIZE(i,p,m)*n, dtype, i, RESPONSE_MSG, MPI_COMM_WORLD, &status);
             print_submatrix (b, dtype, BLOCK_SIZE(i,p,m), n);
          }
          free (b);
          free (bstorage);
       }
-      // putchar ('\n');
    } else {
-      MPI_Recv (&prompt, 1, MPI_INT, 0, PROMPT_MSG,
-         MPI_COMM_WORLD, &status);
-      MPI_Send (*a, local_rows * n, dtype, 0, RESPONSE_MSG,
-         MPI_COMM_WORLD);
+      MPI_Recv (&prompt, 1, MPI_INT, 0, PROMPT_MSG, MPI_COMM_WORLD, &status);
+      MPI_Send (*a, local_rows * n, dtype, 0, RESPONSE_MSG, MPI_COMM_WORLD);
    }
+}
+
+void write_row_striped_matrix (
+   char *file_name,
+   void **a,            /* IN - 2D array */
+   MPI_Datatype dtype,  /* IN - Matrix element type */
+   int m,               /* IN - Matrix rows */
+   int n,               /* IN - Matrix cols */
+   MPI_Comm comm)       /* IN - Communicator */
+{
+   MPI_Status  status;          /* Result of receive */
+   void       *bstorage;        /* Elements received from another process */
+   void      **b;               /* 2D array indexing into 'bstorage' */
+   int         datum_size;      /* Bytes per element */
+   int         i;
+   int         id;              /* Process rank */
+   int         local_rows;      /* This proc's rows */
+   int         max_block_size;  /* Most matrix rows held by any process */
+   int         prompt;          /* Dummy variable */
+   int         p;               /* Number of processes */
+
+   MPI_Comm_rank (comm, &id);
+   MPI_Comm_size (comm, &p);
+   local_rows = BLOCK_SIZE(id,p,m);
+
+   FILE *outfileptr;
+
+   if (id == (p-1)) {
+      outfileptr = fopen (file_name, "w");
+      if (outfileptr == NULL) m = 0;
+      else {
+         fwrite (&m, sizeof(int), 1, outfileptr);
+         fwrite (&n, sizeof(int), 1, outfileptr);
+      }      
+   }
+   fclose (outfileptr);
+
+   if (!id) {
+      write_submatrix ( file_name, a, dtype, local_rows, n);
+      if (p > 1) {
+         datum_size = get_size (dtype);
+         max_block_size = BLOCK_SIZE(p-1,p,m);
+         my_allocate2d(id, local_rows, (void **)&bstorage, datum_size, &n, (void ***)&b);
+         b[0] = bstorage;
+         for (i = 1; i < max_block_size; i++) {
+            b[i] = b[i-1] + n * datum_size;
+         }
+         for (i = 1; i < p; i++) {
+            MPI_Send (&prompt, 1, MPI_INT, i, PROMPT_MSG, MPI_COMM_WORLD);
+            MPI_Recv (bstorage, BLOCK_SIZE(i,p,m)*n, dtype, i, RESPONSE_MSG, MPI_COMM_WORLD, &status);
+            write_submatrix ( file_name, a, dtype, local_rows, n);
+         }
+         free (b);
+         free (bstorage);
+      }
+   } else {
+      MPI_Recv (&prompt, 1, MPI_INT, 0, PROMPT_MSG, MPI_COMM_WORLD, &status);
+      MPI_Send (*a, local_rows * n, dtype, 0, RESPONSE_MSG, MPI_COMM_WORLD);
+   }
+}
+
+void write_submatrix (
+   char *file_name,
+   void       **a,       /* OUT - Doubly-subscripted array */
+   MPI_Datatype dtype,   /* OUT - Type of array elements */
+   int          rows,    /* OUT - Matrix rows */
+   int          cols)    /* OUT - Matrix cols */    
+{
+   FILE *file_out; 
+   file_out = fopen (file_name, "a");
+   int i, j;
+
+   for (i = 0; i < rows; i++) {
+      for (j = 0; j < cols; j++) {
+         if (dtype == MPI_DOUBLE){
+            fwrite(&((double **)a)[i][j], sizeof(double), 1, file_out);
+         }
+         else {
+            if (dtype == MPI_FLOAT){
+               fwrite(&((double **)a)[i][j], sizeof(double), 1, file_out);
+            }   
+            else if (dtype == MPI_INT){
+               fwrite(&((double **)a)[i][j], sizeof(double), 1, file_out);
+            }   
+         }
+      }
+   }
+   fclose(file_out);
 }
 
 /*
