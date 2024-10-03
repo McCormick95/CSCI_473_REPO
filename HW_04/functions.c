@@ -147,15 +147,18 @@ void write_row_striped_matrix (
 
    FILE *outfileptr;
 
-   if (id == (p-1)) {
+   if (id == 0) {
       outfileptr = fopen (file_name, "w");
       if (outfileptr == NULL) m = 0;
       else {
          fwrite (&m, sizeof(int), 1, outfileptr);
          fwrite (&n, sizeof(int), 1, outfileptr);
-      }      
+      }
+
+      fclose (outfileptr);      
    }
-   fclose (outfileptr);
+   
+   MPI_Barrier(comm);
 
    if (!id) {
       write_submatrix ( file_name, a, dtype, local_rows, n);
@@ -170,7 +173,7 @@ void write_row_striped_matrix (
          for (i = 1; i < p; i++) {
             MPI_Send (&prompt, 1, MPI_INT, i, PROMPT_MSG, MPI_COMM_WORLD);
             MPI_Recv (bstorage, BLOCK_SIZE(i,p,m)*n, dtype, i, RESPONSE_MSG, MPI_COMM_WORLD, &status);
-            write_submatrix ( file_name, a, dtype, local_rows, n);
+            write_submatrix ( file_name, a, dtype, BLOCK_SIZE(i,p,m), n);
          }
          free (b);
          free (bstorage);
@@ -199,10 +202,10 @@ void write_submatrix (
          }
          else {
             if (dtype == MPI_FLOAT){
-               fwrite(&((double **)a)[i][j], sizeof(double), 1, file_out);
+               fwrite(&((float **)a)[i][j], sizeof(float), 1, file_out);
             }   
             else if (dtype == MPI_INT){
-               fwrite(&((double **)a)[i][j], sizeof(double), 1, file_out);
+               fwrite(&((int **)a)[i][j], sizeof(int), 1, file_out);
             }   
          }
       }
