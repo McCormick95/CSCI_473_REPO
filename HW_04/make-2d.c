@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
         temp += 1.00;
     }
 
-    printf("STRING WRITTEN TO FILE\n");
+    // printf("STRING WRITTEN TO FILE\n");
 
     fclose(file_out);
 

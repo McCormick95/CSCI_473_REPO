@@ -55,7 +55,7 @@ void read_row_striped_matrix (
    }
 
    void *storage;
-   my_allocate2d(id, local_rows, (void **)&storage, datum_size, n, subs);
+   my_allocate2d(id, local_rows, (void **)&storage, datum_size, n, subs, PTR_SIZE);
 
    if (id == (p-1)) {
       for (i = 0; i < p-1; i++) {
@@ -102,7 +102,7 @@ void print_row_striped_matrix (
       if (p > 1) {
          datum_size = get_size (dtype);
          max_block_size = BLOCK_SIZE(p-1,p,m);
-         my_allocate2d(id, local_rows, (void **)&bstorage, datum_size, &n, (void ***)&b);
+         my_allocate2d(id, max_block_size, (void **)&bstorage, datum_size, &n, (void ***)&b, datum_size);
          b[0] = bstorage;
    
          for (i = 1; i < max_block_size; i++) {
@@ -149,14 +149,20 @@ void write_row_striped_matrix (
 
    if (id == 0) {
       outfileptr = fopen (file_name, "w");
-      if (outfileptr == NULL) m = 0;
+      if (outfileptr == NULL){
+         printf("Error: Cannot open file for writing\n");
+         MPI_Abort(comm, OPEN_FILE_ERROR);
+      }
       else {
          fwrite (&m, sizeof(int), 1, outfileptr);
          fwrite (&n, sizeof(int), 1, outfileptr);
-      }
-
-      fclose (outfileptr);      
+         fclose (outfileptr);
+      }   
    }
+
+   MPI_Bcast (&m, 1, MPI_INT, p-1, comm);
+   if (!(m)) MPI_Abort (MPI_COMM_WORLD, OPEN_FILE_ERROR);
+   MPI_Bcast (&n, 1, MPI_INT, p-1, comm);
    
    MPI_Barrier(comm);
 
@@ -165,7 +171,7 @@ void write_row_striped_matrix (
       if (p > 1) {
          datum_size = get_size (dtype);
          max_block_size = BLOCK_SIZE(p-1,p,m);
-         my_allocate2d(id, local_rows, (void **)&bstorage, datum_size, &n, (void ***)&b);
+         my_allocate2d(id, max_block_size, (void **)&bstorage, datum_size, &n, (void ***)&b, datum_size);
          b[0] = bstorage;
          for (i = 1; i < max_block_size; i++) {
             b[i] = b[i-1] + n * datum_size;
@@ -173,7 +179,7 @@ void write_row_striped_matrix (
          for (i = 1; i < p; i++) {
             MPI_Send (&prompt, 1, MPI_INT, i, PROMPT_MSG, MPI_COMM_WORLD);
             MPI_Recv (bstorage, BLOCK_SIZE(i,p,m)*n, dtype, i, RESPONSE_MSG, MPI_COMM_WORLD, &status);
-            write_submatrix ( file_name, a, dtype, BLOCK_SIZE(i,p,m), n);
+            write_submatrix ( file_name, b, dtype, BLOCK_SIZE(i,p,m), n);
          }
          free (b);
          free (bstorage);
@@ -191,26 +197,54 @@ void write_submatrix (
    int          rows,    /* OUT - Matrix rows */
    int          cols)    /* OUT - Matrix cols */    
 {
-   FILE *file_out; 
-   file_out = fopen (file_name, "a");
+   int rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   // printf("Process %d: Entering write_submatrix\n", rank);
+   // printf("Process %d: file_name = %s, rows = %d, cols = %d\n", rank, file_name, rows, cols);
+   if (a == NULL) {
+      printf("Process %d: Error: 'a' is NULL\n", rank);
+      MPI_Abort(MPI_COMM_WORLD, MALLOC_ERROR);
+   }
+
+   FILE *file_out = fopen (file_name, "a");
+   if (file_out == NULL) {
+      printf("Error: Cannot open file %s for appending\n", file_name);
+      MPI_Abort(MPI_COMM_WORLD, OPEN_FILE_ERROR);
+   }
    int i, j;
+   // printf("Process %d: File opened successfully\n", rank);
+   
 
    for (i = 0; i < rows; i++) {
+      if (a[i] == NULL) {
+         printf("Process %d: Error: 'a[%d]' is NULL\n", rank, i);
+         MPI_Abort(MPI_COMM_WORLD, MALLOC_ERROR);
+      }
       for (j = 0; j < cols; j++) {
          if (dtype == MPI_DOUBLE){
-            fwrite(&((double **)a)[i][j], sizeof(double), 1, file_out);
+            // double value = ((double **)a)[i][j];
+            // printf("Process %d: Writing double at row %d, col %d, value: %f\n", rank, i, j, value);
+            if (fwrite(&((double **)a)[i][j], sizeof(double), 1, file_out) != 1) {
+               printf("Error writing double at row %d, col %d\n", i, j);
+               MPI_Abort(MPI_COMM_WORLD, WRITE_ERROR);
+            }
          }
-         else {
-            if (dtype == MPI_FLOAT){
-               fwrite(&((float **)a)[i][j], sizeof(float), 1, file_out);
-            }   
-            else if (dtype == MPI_INT){
-               fwrite(&((int **)a)[i][j], sizeof(int), 1, file_out);
-            }   
-         }
+         else if (dtype == MPI_FLOAT){
+            if (fwrite(&((float **)a)[i][j], sizeof(float), 1, file_out) != 1) {
+               printf("Error writing float at row %d, col %d\n", i, j);
+               MPI_Abort(MPI_COMM_WORLD, WRITE_ERROR);
+            }
+         }   
+         else if (dtype == MPI_INT){
+            if (fwrite(&((int **)a)[i][j], sizeof(int), 1, file_out) != 1) {
+               printf("Error writing int at row %d, col %d\n", i, j);
+               MPI_Abort(MPI_COMM_WORLD, WRITE_ERROR);
+            }
+         }   
       }
    }
    fclose(file_out);
+   // printf("Process %d: Exiting write_submatrix\n", rank);
 }
 
 /*
@@ -277,11 +311,11 @@ void *my_malloc (
    return buffer;
 }
 
-void my_allocate2d(int id, int local_rows, void **storage, int datum_size, int *n, void ***subs){
+void my_allocate2d(int id, int local_rows, void **storage, int datum_size, int *n, void ***subs, int ptr_sz){
    void **lptr;
    void *rptr;
    *storage = (void *) my_malloc (id, local_rows * *n * datum_size);
-   *subs = (void **) my_malloc (id, local_rows * PTR_SIZE);
+   *subs = (void **) my_malloc (id, local_rows * ptr_sz);
 
    lptr = (void *) &(*subs[0]);
    rptr = (void *) *storage;
