@@ -13,6 +13,7 @@ int main(int argc, char *argv[]){
     double C = 0.0;
     double H = 0.0;
     int n = 0;
+    double start_time, end_time, elapsed_time;
 
     get_user_input(argc, argv, &C, &A, &H, &n);
 
@@ -20,6 +21,9 @@ int main(int argc, char *argv[]){
     int total_reflect, total_absorb, total_transmit;
     int np, id, local_n;
 
+    // Start the timer
+    start_time = MPI_Wtime();
+    
     MPI_Comm_rank (MPI_COMM_WORLD, &id);
     MPI_Comm_size (MPI_COMM_WORLD, &np);
 
@@ -31,6 +35,9 @@ int main(int argc, char *argv[]){
     MPI_Reduce(&local_absorb, &total_absorb, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&local_transmit, &total_transmit, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
+    // End the timer
+    end_time = MPI_Wtime();
+
     if(id == 0){
         double prob_reflect = (double)total_reflect / n;
         double prob_absorb = (double)total_absorb / n;
@@ -39,6 +46,14 @@ int main(int argc, char *argv[]){
         printf("r/n = %f, a/n =  %f, t/n = %f \n", prob_reflect, prob_absorb, prob_transmit);
     }
     
+    // Calculate the elapsed time
+    elapsed_time = end_time - start_time;
+
+    // Print the elapsed time
+    if (id == 0) {
+        printf("T: %f \n", elapsed_time);
+    }
+
     MPI_Finalize();
     return 0;
 }
