@@ -15,14 +15,8 @@ NUM_PROCESSES=4
 
 # Function to extract values from the output
 extract_values() {
-    reflect=$(echo "$1" | grep "reflected" | awk -F'[(),=]' '{print $2}')
-    absorb=$(echo "$1" | grep "absorbed" | awk -F'[(),=]' '{print $4}')
-    transmit=$(echo "$1" | grep "transmitted" | awk -F'[(),=]' '{print $6}')
-    prob_reflect=$(echo "$1" | grep "r/n" | awk '{print $3}')
-    prob_absorb=$(echo "$1" | grep "a/n" | awk '{print $6}')
-    prob_transmit=$(echo "$1" | grep "t/n" | awk '{print $9}')
-    time=$(echo "$1" | grep "T:" | awk '{print $2}')
-    echo "$reflect,$absorb,$transmit,$prob_reflect,$prob_absorb,$prob_transmit,$time"
+    # Skip the header line and get the data line
+    echo "$1" | tail -n 1
 }
 
 echo "-------------RUNNING SERIAL-------------"
