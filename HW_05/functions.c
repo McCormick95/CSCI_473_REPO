@@ -6,9 +6,9 @@
 #include <assert.h>
 #include "functions.h"
 
-void get_user_input(int argc, char **argv, double *C, double *A, double *H, int *n){
+void get_user_input(int argc, char **argv, double *C, double *A, double *H, int *n, int *u){
     int opt;
-    while ((opt = getopt(argc, argv, "C:A:H:n:")) != -1){
+    while ((opt = getopt(argc, argv, "C:A:H:n:u:")) != -1){
         switch(opt) {
             case 'C':
                 *C = atof(optarg);
@@ -26,14 +26,17 @@ void get_user_input(int argc, char **argv, double *C, double *A, double *H, int 
                 *n = atoi(optarg);
                 assert(*n > 0);
                 break;
+            case 'u':
+                *u = atoi(optarg);
+                break;
             default:
-                fprintf(stderr, "USAGE: %s -A <double> -C <double> -H <double> -n <int> \n A must be less than C, all params. > 0\n", argv[0]);
+                fprintf(stderr, "USAGE: %s -A <double> -C <double> -H <double> -n <int> \n A must be less than C, all params. > 0\n (OPTIONAL: set -u 1 for csv data output for testing)\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
 
     if (*A == 0.0 || *C == 0.0 || *H == 0.0 || *n == 0 || *A > *C) {
-        fprintf(stderr, "ERROR: All arguments -A, -C, -H, and -n are required.\n A must be less than C, all params > 0\n");
+        fprintf(stderr, "ERROR: All arguments -A, -C, -H, and -n are required.\n A must be less than C, all params > 0\n (OPTIONAL: set -u 1 for csv data output for testing)\n");
         exit(EXIT_FAILURE);
     }
 }
