@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <assert.h>
+#include <time.h>
 #include "functions.h"
 
 void get_user_input(int argc, char **argv, double *C, double *A, double *H, int *n, int *u){
@@ -52,13 +53,13 @@ void test_neutrons( double C, double A, double H, int local_n, int *local_reflec
     *local_reflect = 0;
     *local_transmit = 0;
 
-    // unsigned short seed[3];
-    // time_t t;
-    // time(&t);
-    // seed[0] = (unsigned short)t;
-    // seed[1] = (unsigned short)(t >> 16);
-    // seed[2] = (unsigned short)(t >> 32);
-    unsigned short seed[3] ={0,0,0};
+    unsigned short seed[3];
+    time_t t;
+    time(&t);
+    seed[0] = (unsigned short)t;
+    seed[1] = (unsigned short)(t >> 16);
+    seed[2] = (unsigned short)(t >> 32);
+    // unsigned short seed[3] ={0,0,0};
 
     for(int i = 0; i < local_n; i++){
         direction = 0.0;

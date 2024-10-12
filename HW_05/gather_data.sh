@@ -1,5 +1,7 @@
 #!/bin/bash
 
+make clean all
+
 # Set the values of A, C, and H
 A=0.5
 C=1.0
@@ -7,11 +9,10 @@ H=1.0
 u=1
 
 # Set the number of processes for parallel execution
-START_NUM=20000000
+START_NUM=25000000
 INCREMENT=20000000
-MAX_NUM=40000000
-# MAX_NUM=100000000
-NUM_PROCESSES=4
+MAX_NUM=250000000
+NUM_PROCESSES=64
 
 # Function to extract values from the output
 extract_values() {

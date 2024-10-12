@@ -7,7 +7,7 @@
 #SBATCH --mem=16G
 #SBATCH --account=ccu108
 #SBATCH --export=ALL
-#SBATCH -t 00:05:00
+#SBATCH -t 00:45:00
 
 #This job runs with 1 nodes, 128 cores per node for a total of 128 tasks.
 
