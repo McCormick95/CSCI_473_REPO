@@ -10,7 +10,7 @@ u=1
 
 # Set the number of processes for parallel execution
 START_NUM=25000000
-INCREMENT=20000000
+INCREMENT=25000000
 MAX_NUM=250000000
 NUM_PROCESSES=64
 
@@ -42,7 +42,7 @@ for (( n=START_NUM; n<=MAX_NUM; n+=INCREMENT )); do
         echo "Running simulations for n = $n and np= $np"
     
         # Run parallel version
-        parallel_output=$(mpirun -np $np ./nt-parallel -A $A -C $C -H $H -n $n -u $u)
+        parallel_output=$(mpirun -oversubscribe -np $np ./nt-parallel -A $A -C $C -H $H -n $n -u $u)
         parallel_values=$(extract_values "$parallel_output")
         
         # Append results to CSV

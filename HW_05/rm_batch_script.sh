@@ -1,6 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name="rm_hw05"
 #SBATCH --output="rm_hw05.%j.%N.out"
+#SBATCH --mail-user=rlmccormi@coastal.edu
+#SBATCH --mail-type=BEGIN,END
 #SBATCH --partition=compute
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=128
