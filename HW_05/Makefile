@@ -1,24 +1,26 @@
-CFLAGS=-g -Wall -Wstrict-prototypes
-PROGS=nt-parallel nt-serial functions
-OBJECTS= nt-serial.o nt-parallel.o functions.o
-LDFLAGS=-lm
-CC=gcc
-MCC=mpicc
-HEADERS= functions.h
+CC = gcc
+MPICC = mpicc
+CFLAGS = -g -Wall -Wstrict-prototypes
+LDFLAGS = -lm
 
-all: $(PROGS)
+all: nt-parallel nt-serial
 
-nt-parallel: nt-parallel.c
-	$(MCC) $(CFLAGS) -o nt-parallel nt-parallel.c $(LDFLAGS)
+nt-parallel: nt-parallel.o functions.o
+	$(MPICC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-nt-serial: nt-serial.c
-	$(CC) $(CFLAGS) -o nt-serial nt-serial.c $(LDFLAGS)
+nt-serial: nt-serial.o functions.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-functions: functions.c
-	$(CC) $(CFLAGS) -o functions functions.c
+nt-parallel.o: nt-parallel.c functions.h
+	$(MPICC) $(CFLAGS) -c $<
+
+nt-serial.o: nt-serial.c functions.h
+	$(CC) $(CFLAGS) -c $<
 
 functions.o: functions.c functions.h
-	$(CC) $(CFLAGS) -c functions.c
+	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f $(PROGS) *.o core*
+	rm -f nt-parallel nt-serial *.o
+
+.PHONY: all clean
