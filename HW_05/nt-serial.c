@@ -30,7 +30,6 @@ int main(int argc, char *argv[]){
 
     unsigned short seed[3] ={0,0,0};
 
-
     while ((opt = getopt(argc, argv, "A:C:H:n:")) != -1){
         switch(opt) {
             case 'A':

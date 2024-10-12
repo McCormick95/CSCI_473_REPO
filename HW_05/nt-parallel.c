@@ -13,9 +13,7 @@
                      (BLOCK_HIGH(id,p,n)-BLOCK_LOW(id,p,n)+1)
 
 void test_neutrons( double C, double A, double H,
-    int local_n, int *local_reflect, int *local_absorb, int *local_transmit);
-
-// void get_user_input(int argc, char **argv, double *C, double *A, double *H, int *n);    
+    int local_n, int *local_reflect, int *local_absorb, int *local_transmit);   
 
 int main(int argc, char *argv[]){
     MPI_Init(NULL, NULL);
@@ -25,7 +23,6 @@ int main(int argc, char *argv[]){
     double H = 0.0;
     int n = 0;
 
-    // get_user_input(argc, argv, &C, &A, &H, &n);
     while ((opt = getopt(argc, argv, "C:A:H:n:")) != -1){
         switch(opt) {
             case 'C':
@@ -61,7 +58,7 @@ int main(int argc, char *argv[]){
 
     MPI_Comm_rank (MPI_COMM_WORLD, &id);
     MPI_Comm_size (MPI_COMM_WORLD, &np);
-    
+
     local_n = BLOCK_SIZE(id, np, n);
 
     test_neutrons(C, A, H, local_n, &local_reflect, &local_absorb, &local_transmit);
@@ -83,7 +80,6 @@ int main(int argc, char *argv[]){
     MPI_Finalize();
     return 0;
 }
-
 
 void test_neutrons( double C, double A, double H, int local_n, int *local_reflect, int *local_absorb, int *local_transmit){
     double L_dist = 0.0;
@@ -132,6 +128,5 @@ void test_neutrons( double C, double A, double H, int local_n, int *local_reflec
             }
         }
     }
-
     printf("id= %d, r= %d, t= %d, a= %d \n", id, *local_reflect, *local_transmit, *local_absorb);
 }
