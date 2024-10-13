@@ -1,4 +1,4 @@
-n,np,parallel_reflect,parallel_absorb,parallel_transmit,parallel_prob_reflect,parallel_prob_absorb,parallel_prob_transmit,parallel_time
+n,np,time,parallel_reflect,parallel_absorb,parallel_transmit,parallel_prob_reflect,parallel_prob_absorb,parallel_prob_transmit,
 25000000,1,2.485370,10814742,4985985,9199273,0.432590,0.199439,0.367971,
 25000000,2,1.242132,10814944,4985526,9199530,0.432598,0.199421,0.367981,
 25000000,3,0.817199,10814521,4989210,9196269,0.432581,0.199568,0.367851,

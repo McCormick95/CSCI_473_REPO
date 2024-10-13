@@ -35,7 +35,7 @@ for (( n=START_NUM; n<=MAX_NUM; n+=INCREMENT )); do
 done
 
 echo "------------RUNNING Parallel------------"
-echo "n,np,parallel_reflect,parallel_absorb,parallel_transmit,parallel_prob_reflect,parallel_prob_absorb,parallel_prob_transmit,parallel_time" > results_parallel.csv
+echo "n,np,time,parallel_reflect,parallel_absorb,parallel_transmit,parallel_prob_reflect,parallel_prob_absorb,parallel_prob_transmit," > results_parallel.csv
 # Loop through different values of n
 for (( n=START_NUM; n<=MAX_NUM; n+=INCREMENT )); do
     for (( np=1; np<=NUM_PROCESSES; np++ )); do
