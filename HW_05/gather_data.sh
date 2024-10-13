@@ -10,7 +10,7 @@ u=1
 
 # Set the number of processes for parallel execution
 START_NUM=25000000
-INCREMENT=25000000
+INCREMENT=50000000
 MAX_NUM=250000000
 NUM_PROCESSES=64
 
