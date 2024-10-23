@@ -1,5 +1,5 @@
 CFLAGS=-g -Wall -Wstrict-prototypes
-PROGS= make-2d print-2d
+PROGS= make-2d print-2d stencil-2d
 # OBJECTS=test-mpi-read.o functions.o
 LDFLAGS=-lm
 CC=gcc
@@ -12,6 +12,9 @@ make-2d: make-2d.c
 
 print-2d: print-2d.c
 	$(CC) $(CFLAGS) -o print-2d print-2d.c
+
+stencil-2d: stencil-2d.c
+	$(CC) $(CFLAGS) -o stencil-2d stencil-2d.c	
 
 # functions: functions.c
 # 	$(CC) $(CFLAGS) -o functions functions.c
