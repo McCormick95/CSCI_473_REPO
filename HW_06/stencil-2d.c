@@ -62,6 +62,11 @@ int main(int argc, char *argv[]){
     }
     fclose(file_in);
 
+    for(int i = 0; i < rows; i++){
+        B[i][0] = A[i][0];
+        B[i][cols-1] = A[i][cols-1];
+    }
+
     printf("----------TESTING----------\n");
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < cols; j++){
@@ -124,8 +129,8 @@ void apply_stencil(double ***A, double ***B, int rows, int cols){
     double **b = *B;
 
     // Only process interior points to avoid boundary issues
-    for(int i = 1; i < rows-2; i++){
-        for(int j = 1; j < cols-2; j++){
+    for(int i = 1; i < rows-1; i++){
+        for(int j = 1; j < cols-1; j++){
              double sum =   a[i-1][j-1] + a[i-1][j] + a[i-1][j+1] + 
                             a[i][j-1]   + a[i][j]   + a[i][j+1] + 
                             a[i+1][j-1] + a[i+1][j] + a[i+1][j+1];
@@ -156,8 +161,7 @@ void write_file(double ***A, int rows, int cols, int ittr, FILE *f_name, int fla
         }
     }
     else if(flag == 2){
-        if(fwrite(&rows, sizeof(int), 1, f_name) != 1 || fwrite(&cols, sizeof(int), 1, f_name) != 1 \
-                    || fwrite(&ittr, sizeof(int), 1, f_name) != 1){
+        if(fwrite(&rows, sizeof(int), 1, f_name) != 1 || fwrite(&cols, sizeof(int), 1, f_name) != 1 ){
             perror("ERROR: WHILE WRITING METADATA");
             fclose(f_name);
             exit(1);
