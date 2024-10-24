@@ -63,13 +63,13 @@ int main(int argc, char *argv[]){
         B[i][cols-1] = A[i][cols-1];
     }
 
-    printf("----------TESTING----------\n");
-    for(int i = 0; i < rows; i++){
-        for(int j = 0; j < cols; j++){
-            printf("%8.2f ", A[i][j]);
-        }
-        printf("\n");
-    }
+    // printf("----------TESTING----------\n");
+    // for(int i = 0; i < rows; i++){
+    //     for(int j = 0; j < cols; j++){
+    //         printf("%8.2f ", A[i][j]);
+    //     }
+    //     printf("\n");
+    // }
 
     // print initial state to file for all-iterations
     FILE *file_out_1 = fopen(f_all_ittr, "w");
