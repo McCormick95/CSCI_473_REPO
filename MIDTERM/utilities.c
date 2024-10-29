@@ -65,4 +65,3 @@ void write_file(double ***A, int rows, int cols, int ittr, FILE *f_name, int fla
         }
     }
 }
-
