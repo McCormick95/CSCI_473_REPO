@@ -4,13 +4,13 @@
 
 int pthread_barrier_init(pthread_barrier_t *bar, int attr, int num)
 {
-  int ret = 0;
-  if ((ret = pthread_mutex_init(&(bar->mutex), 0))) return ret;
-  if ((ret = pthread_cond_init(&(bar->cond), 0))) return ret;
-  bar->flag = 0;
-  bar->count = 0;
-  bar->num = num;
-  return 0;
+    int ret = 0;
+    if ((ret = pthread_mutex_init(&(bar->mutex), 0))) return ret;
+    if ((ret = pthread_cond_init(&(bar->cond), 0))) return ret;
+    bar->flag = 0;
+    bar->count = 0;
+    bar->num = num;
+    return 0;
 }
 
 int pthread_barrier_wait(pthread_barrier_t *bar)

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "utilities.h"
 #include "timer.h"
 
@@ -15,6 +16,7 @@ void malloc2D(double ***a, int jmax, int imax){
     *a = x;
 }
 
+// SERIAL
 void apply_stencil(double ***A, double ***B, int rows, int cols){
     double **a = *A;
     double **b = *B;
@@ -28,6 +30,33 @@ void apply_stencil(double ***A, double ***B, int rows, int cols){
             b[i][j] = sum / 9.0;
         }
     }
+}
+
+// PTHREADS
+void *pth_apply_stencil(void *arg){
+    ThreadData *data = (ThreadData)arg;
+    
+    for(int iter = 0; iter < data->iterations; iter++){
+        // Only process interior points to avoid boundary issues
+        for(int i = data->start_row; i < data->end_row; i++){
+            for(int j = 1; j < data->cols-1; j++){
+                double sum =data->a[i-1][j-1] + data->a[i-1][j] + data->a[i-1][j+1] + 
+                            data->a[i][j-1]   + data->a[i][j]   + data->a[i][j+1]   + 
+                            data->a[i+1][j-1] + data->a[i+1][j] + data->a[i+1][j+1];
+                data->b[i][j] = sum / 9.0;
+            }
+        }
+    }
+
+    pthread_barrier_wait(data->barrier);
+
+    if (data->start_row == 1) {  // Thread 0
+        double **temp = data->a;
+        data->a = data->b;
+        data->b = temp;
+    }
+    
+
 }
 
 // flag = 0 --> printing one snapshot for all-iterations
@@ -65,3 +94,4 @@ void write_file(double ***A, int rows, int cols, int ittr, FILE *f_name, int fla
         }
     }
 }
+
