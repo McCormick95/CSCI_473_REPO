@@ -17,7 +17,7 @@ void malloc2D(double ***a, int jmax, int imax){
 }
 
 // SERIAL
-void apply_stencil(double ***A, double ***B, int rows, int cols){
+void apply_stencil_serial(double ***A, double ***B, int rows, int cols){
     double **a = *A;
     double **b = *B;
 
@@ -54,9 +54,13 @@ void *pth_apply_stencil(void *arg){
         double **temp = data->a;
         data->a = data->b;
         data->b = temp;
-    }
-    
 
+        write_file(&data->a, rows, cols, ittr, file_out_1, 0);
+    }
+
+    pthread_barrier_wait(data->barrier);
+    
+    pthread_exit(NULL);
 }
 
 // flag = 0 --> printing one snapshot for all-iterations

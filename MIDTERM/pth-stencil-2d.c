@@ -84,15 +84,15 @@ int main(int argc, char *argv[]){
     apply_stencil(&A, &B, rows, cols, iterations, thread_count);
 
     // APPLY STENCIL
-    for(int i = 0; i < ittr; i++){
-        pth_apply_stencil(&A, &B, rows, cols);
+    // for(int i = 0; i < ittr; i++){
+    //     pth_apply_stencil(&A, &B, rows, cols);
         
-        double **temp_ptr = A;
-        A = B;
-        B = temp_ptr;
+    //     double **temp_ptr = A;
+    //     A = B;
+    //     B = temp_ptr;
 
-        write_file(&A, rows, cols, ittr, file_out_1, 0);
-    }
+    //     write_file(&A, rows, cols, ittr, file_out_1, 0);
+    // }
     fclose(file_out_1);
 
     //print final snapshot
@@ -124,19 +124,17 @@ void apply_stencil(double ***A, double ***B, int rows, int cols, int iterations,
 
     for(int i = 0; i < thread_count; i++){
         thread_data[i].a = a;
-        thread_data[i].a = a;
         thread_data[i].b = b;
         thread_data[i].cols = cols;
         thread_data[i].barrier = &barrier;
         thread_data[i].iterations = iterations;
-
-        thread_data[i].start_row = BLOCK_LOW(i, thread_count, rows);
-        thread_data[i].end_row = BLOCK_HIGH(i, thread_count, rows);
+        thread_data[i].start_row = BLOCK_LOW(i, thread_count, rows - 2) + 1;
+        thread_data[i].end_row = BLOCK_HIGH(i, thread_count, rows - 2) + 1;
 
         int rc = pthread_create(&threads[i], NULL, pth_apply_stencil, (void*)&thread_data[i]);
         if(rc){
             perror("ERROR: WHILE CREATING THREAD %d\n", i);
-            return 1;
+            exit(-1);
         }
     }
 
@@ -148,4 +146,6 @@ void apply_stencil(double ***A, double ***B, int rows, int cols, int iterations,
     *B = thread_data[0].b;
 
     pthread_barrier_destroy(&barrier);
+    free(threads);
+    free(thread_data);
 }
