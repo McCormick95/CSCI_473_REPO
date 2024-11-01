@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
     write_file(&A, rows, cols, ittr, file_out_1, 1);
 
     for(int i = 0; i < ittr; i++){
-        apply_stencil(&A, &B, rows, cols);
+        apply_stencil_serial(&A, &B, rows, cols);
         
         double **temp_ptr = A;
         A = B;

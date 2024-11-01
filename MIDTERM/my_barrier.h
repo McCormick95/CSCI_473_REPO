@@ -1,18 +1,23 @@
 #ifndef MY_BARRIER_H
 #define MY_BARRIER_H
 
-#define PTHREAD_BARRIER_SERIAL_THREAD   1
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <stdint.h>
+#include "my_barrier.h"
 
-typedef struct pthread_barrier {
+#define MY_BARRIER_SERIAL_THREAD 1
+
+typedef struct my_barrier {
     pthread_mutex_t         mutex;
     pthread_cond_t          cond;
     volatile uint32_t       flag;
     size_t                  count;
     size_t                  num;
-} pthread_barrier_t;
+} my_barrier_t;
 
-int pthread_barrier_init(pthread_barrier_t *bar, int attr, int num);
-
-int pthread_barrier_wait(pthread_barrier_t *bar);
+int my_barrier_init(my_barrier_t *bar, int attr, int num);
+int my_barrier_wait(my_barrier_t *bar);
 
 #endif
