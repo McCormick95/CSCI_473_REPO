@@ -85,16 +85,6 @@ int main(int argc, char *argv[]){
 
     run_stencil(&A, &B, rows, cols, ittr, thread_count, file_out_1);
 
-    // APPLY STENCIL
-    // for(int i = 0; i < ittr; i++){
-    //     pth_apply_stencil(&A, &B, rows, cols);
-        
-    //     double **temp_ptr = A;
-    //     A = B;
-    //     B = temp_ptr;
-
-    //     write_file(&A, rows, cols, ittr, file_out_1, 0);
-    // }
     fclose(file_out_1);
 
     //print final snapshot

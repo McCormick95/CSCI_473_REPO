@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdint.h>
-#include "my_barrier.h"
+// #include "my_barrier.h"
 
 #define MY_BARRIER_SERIAL_THREAD 1
 

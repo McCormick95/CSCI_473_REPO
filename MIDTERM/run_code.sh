@@ -4,7 +4,7 @@ make clean all
 
 ./print-2d matrix_1
 
-./pth-stencil-2d 10 matrix_1 out_1 0 5 all_1.RAW
+./pth-stencil-2d 10 matrix_1 out_1 0 3 all_1.RAW
 
 ./print-2d out_1
 

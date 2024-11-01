@@ -39,7 +39,6 @@ typedef struct {
 
 void *pth_apply_stencil(void *arg);
 void run_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thread_count, FILE *output_file);
-// void apply_stencil_parallel(double ***A, double ***B, int rows, int cols, int iterations, int thread_count);
 
 #endif // _PARALLEL
 

@@ -21,8 +21,8 @@ void apply_stencil_serial(double ***A, double ***B, int rows, int cols) {
     for(int i = 1; i < rows-1; i++) {
         for(int j = 1; j < cols-1; j++) {
             double sum = a[i-1][j-1] + a[i-1][j] + a[i-1][j+1] + 
-                        a[i][j-1]   + a[i][j]   + a[i][j+1]   + 
-                        a[i+1][j-1] + a[i+1][j] + a[i+1][j+1];
+                        a[i][j-1]    + a[i][j]   + a[i][j+1]   + 
+                        a[i+1][j-1]  + a[i+1][j] + a[i+1][j+1];
             b[i][j] = sum / 9.0;
         }
     }
@@ -139,7 +139,6 @@ void run_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thr
         thread_data[i].output_file = NULL;
 
         // Calculate block using macros
-        // Note: We're dividing rows-2 to handle interior points
         thread_data[i].start_row = BLOCK_LOW(i, thread_count, rows-2) + 1;
         thread_data[i].end_row = BLOCK_HIGH(i, thread_count, rows-2) + 1;
 
@@ -156,7 +155,7 @@ void run_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thr
         pthread_join(threads[i], NULL);
     }
 
-     // Update the final array pointers
+    // Update the final array pointers
     *A = shared->curr;
     *B = shared->next;
 
