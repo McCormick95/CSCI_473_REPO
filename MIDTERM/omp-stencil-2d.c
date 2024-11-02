@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <omp.h>
 #include "utilities.h"
 
 int main(int argc, char *argv[]){
     int rows; 
     int cols;
-    int ittr = 0;
+    int ittr = -1;
+    int debug_flag = -1;
+    int thread_count = -1;
     double temp;
     double **A;
     double **B;
@@ -16,11 +19,16 @@ int main(int argc, char *argv[]){
     ittr = atoi(argv[1]);
     f_in = argv[2];
     f_out = argv[3];
-    f_all_ittr = argv[4];
+    debug_flag = atoi(argv[4]);
+    thread_count = atoi(argv[5]);
+    f_all_ittr = argv[6];
 
-    if(argc != 5 || ittr <= 0 || f_in == NULL || f_out == NULL || f_all_ittr == NULL){
-        printf("USAGE: ./stencil-2d <iterations> <input_file> <output_file> <all_iterations>\n");
+    if(argc < 5 || argc > 6 || ittr <= 0 || f_in == NULL || f_out == NULL || debug_flag < 0 || debug_flag > 2 || thread_count <= 0){
+        printf("USAGE: ./omp-stencil-2d <iterations> <input_file> <output_file> <debug_level> <num_threads> <all_stacked_file_name.raw (optional)>\n");
     }
+
+    // Set number of threads
+    omp_set_num_threads(thread_count);
 
     FILE *file_in = fopen(f_in, "r");
     if(file_in == NULL){
@@ -73,14 +81,20 @@ int main(int argc, char *argv[]){
     }
     write_file(&A, rows, cols, ittr, file_out_1, 1);
 
-    for(int i = 0; i < ittr; i++){
-        apply_stencil(&A, &B, rows, cols);
-        
-        double **temp_ptr = A;
-        A = B;
-        B = temp_ptr;
+    #pragma omp parallel default(none) shared(A, B, rows, cols, ittr, file_out_1) 
+    {
+        for(int i = 0; i < ittr; i++){
+            omp_apply_stencil(&A, &B, rows, cols);
+            
+            #pragma omp single 
+            {
+                double **temp_ptr = A;
+                A = B;
+                B = temp_ptr;
 
-        write_file(&A, rows, cols, ittr, file_out_1, 0);
+                write_file(&A, rows, cols, ittr, file_out_1, 0);
+            }
+        }
     }
     fclose(file_out_1);
 

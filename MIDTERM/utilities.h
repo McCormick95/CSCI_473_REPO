@@ -2,6 +2,7 @@
 #define UTILITIES_H
 
 #include <stdio.h>
+#include <omp.h>
 
 // Memory allocation
 void malloc2D(double ***a, int jmax, int imax);
@@ -11,6 +12,8 @@ void apply_stencil_serial(double ***A, double ***B, int rows, int cols);
 
 // File operations
 void write_file(double ***A, int rows, int cols, int ittr, FILE *f_name, int flag);
+
+void omp_apply_stencil(double ***A, double ***B, int rows, int cols);
 
 // Parallel operations (only included when compiling parallel version)
 #ifdef _PARALLEL

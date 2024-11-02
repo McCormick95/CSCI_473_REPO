@@ -1,6 +1,6 @@
-CFLAGS=-g -Wall -Wstrict-prototypes
-PROGS=make-2d print-2d stencil-2d pth-stencil-2d
-LDFLAGS=-lm -lpthread
+CFLAGS=-g -Wall -Wstrict-prototypes -fopenmp
+PROGS=make-2d print-2d stencil-2d pth-stencil-2d omp-stencil-2d
+LDFLAGS=-lm -lpthread 
 CC=gcc
 
 all: $(PROGS)
@@ -34,6 +34,12 @@ utilities_parallel.o: utilities.c utilities.h my_barrier.h
 
 my_barrier.o: my_barrier.c my_barrier.h
 	$(CC) $(CFLAGS) -c my_barrier.c
+
+omp-stencil-2d: omp-stencil-2d.o utilities.o
+	$(CC) $(CFLAGS) -o omp-stencil-2d omp-stencil-2d.o utilities.o $(LDFLAGS)
+
+omp-stencil-2d.o: omp-stencil-2d.c utilities.h
+	$(CC) $(CFLAGS) -c omp-stencil-2d.c
 
 clean:
 	rm -f $(PROGS) *.o core*
