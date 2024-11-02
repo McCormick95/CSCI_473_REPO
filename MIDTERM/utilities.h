@@ -3,20 +3,6 @@
 
 #include <stdio.h>
 #include <omp.h>
-
-// Memory allocation
-void malloc2D(double ***a, int jmax, int imax);
-
-// Serial stencil operation
-void apply_stencil_serial(double ***A, double ***B, int rows, int cols);
-
-// File operations
-void write_file(double ***A, int rows, int cols, int ittr, FILE *f_name, int flag);
-
-void omp_apply_stencil(double ***A, double ***B, int rows, int cols);
-
-// Parallel operations (only included when compiling parallel version)
-#ifdef _PARALLEL
 #include "my_barrier.h"
 
 #define BLOCK_LOW(id,p,n)  ((id)*(n)/(p))
@@ -40,9 +26,16 @@ typedef struct {
     my_barrier_t *barrier;
 } ThreadData;
 
+// Memory allocation
+void malloc2D(double ***a, int jmax, int imax);
+
+void apply_stencil_serial(double ***A, double ***B, int rows, int cols);
+
+void write_file(double ***A, int rows, int cols, int ittr, FILE *f_name, int flag);
+
+void omp_apply_stencil(double ***A, double ***B, int rows, int cols);
+
 void *pth_apply_stencil(void *arg);
 void run_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thread_count, FILE *output_file);
-
-#endif // _PARALLEL
 
 #endif // UTILITIES_H

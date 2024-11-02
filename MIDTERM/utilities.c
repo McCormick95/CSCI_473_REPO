@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
+#include <pthread.h>
+#include "my_barrier.h"
 #include "utilities.h"
 
 void malloc2D(double ***a, int jmax, int imax) {
@@ -79,11 +81,6 @@ void omp_apply_stencil(double ***A, double ***B, int rows, int cols) {
         }
     }
 }
-
-// Parallel operations (only compiled when _PARALLEL is defined)
-#ifdef _PARALLEL
-#include <pthread.h>
-#include "my_barrier.h"
 
 void *pth_apply_stencil(void *arg) {
     ThreadData *data = (ThreadData *)arg;
@@ -181,6 +178,3 @@ void run_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thr
     free(threads);
     free(thread_data);
 }
-#endif // _PARALLEL
-
-
