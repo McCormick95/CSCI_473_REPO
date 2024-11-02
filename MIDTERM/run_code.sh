@@ -7,6 +7,10 @@ SERIAL_OUT="out_0"
 PTH_OUT="out_1"
 OMP_OUT="out_2"
 
+SERIAL_ALL="all_0.RAW"
+PTH_ALL="all_1.RAW"
+OMP_ALL="all_2.RAW"
+
 MATRIX="matrix_test"
 ROWS="10"
 COLS="10"
@@ -19,9 +23,9 @@ make clean all
 ./print-2d matrix_1
 
 
-./stencil-2d $ITTR $MATRIX $SERIAL_OUT all_0.RAW
-./pth-stencil-2d $ITTR $MATRIX $PTH_OUT 0 3 all_1.RAW
-./omp-stencil-2d $ITTR $MATRIX $OMP_OUT 0 3 all_2.RAW
+./stencil-2d $ITTR $MATRIX $SERIAL_OUT $SERIAL_ALL
+./pth-stencil-2d $ITTR $MATRIX $PTH_OUT 0 3 $PTH_ALL
+./omp-stencil-2d $ITTR $MATRIX $OMP_OUT 0 3 $OMP_ALL
 
 ./print-2d $SERIAL_OUT
 echo "--------------------------------------------------------------------------"
@@ -33,6 +37,8 @@ echo "--------------------------------------------------------------------------
 echo "DIFFING OUTPUT FILES...."
 if diff3 "$SERIAL_OUT" "$PTH_OUT" "$OMP_OUT" > /dev/null 2>&1; then
     echo -e "\t${GREEN}All three files are the same.${NC}"
+
+    rm -f "$SERIAL_OUT" "$PTH_OUT" "$OMP_OUT" "$SERIAL_ALL" "$PTH_ALL" "$OMP_ALL" "$MATRIX"
 else
     # Additional checks to identify which files differ
     if diff "$SERIAL_OUT" "$PTH_OUT" > /dev/null 2>&1; then
