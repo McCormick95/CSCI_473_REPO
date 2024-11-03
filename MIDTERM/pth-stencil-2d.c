@@ -83,7 +83,7 @@ int main(int argc, char *argv[]){
     }
     write_file(&A, rows, cols, ittr, file_out_1, 1);
 
-    run_stencil(&A, &B, rows, cols, ittr, thread_count, file_out_1);
+    run_pth_stencil(&A, &B, rows, cols, ittr, thread_count, file_out_1);
 
     fclose(file_out_1);
 

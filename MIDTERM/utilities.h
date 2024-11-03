@@ -36,6 +36,6 @@ void write_file(double ***A, int rows, int cols, int ittr, FILE *f_name, int fla
 void omp_apply_stencil(double ***A, double ***B, int rows, int cols);
 
 void *pth_apply_stencil(void *arg);
-void run_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thread_count, FILE *output_file);
+void run_pth_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thread_count, FILE *output_file);
 
 #endif // UTILITIES_H

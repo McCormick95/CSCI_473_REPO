@@ -119,7 +119,7 @@ void *pth_apply_stencil(void *arg) {
     return NULL;
 }
 
-void run_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thread_count, FILE *output_file) {
+void run_pth_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thread_count, FILE *output_file) {
     double **a = *A;
     double **b = *B;
 
