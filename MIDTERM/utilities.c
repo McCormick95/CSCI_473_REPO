@@ -102,7 +102,7 @@ void *pth_apply_stencil(void *arg) {
         // Thread 0 handles pointer swap and file output
         if (data->start_row == 1) {  // Thread 0
             // Write to file if needed
-            if (data->output_file != NULL) {
+            if (data->print_all_status == 1) {
                 write_file(data->B, data->rows, data->cols, data->iterations, data->output_file, 0);
             }
             
@@ -119,7 +119,7 @@ void *pth_apply_stencil(void *arg) {
     return NULL;
 }
 
-void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr, int thread_count, FILE *output_file) {
+void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr, int thread_count, FILE *output_file, int print_all_status) {
     double **a = *M_A;
     double **b = *M_B;
 
@@ -149,6 +149,7 @@ void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr,
         thread_data[i].rows = rows;
         thread_data[i].barrier = &barrier;
         thread_data[i].iterations = ittr;
+        thread_data[i].print_all_status = print_all_status;
         thread_data[i].output_file = NULL;
 
         // Calculate block using macros

@@ -15,6 +15,7 @@ MATRIX="matrix_test"
 ROWS="10"
 COLS="10"
 ITTR="100"
+DEBUG=0
 
 make clean all
 
@@ -22,9 +23,9 @@ make clean all
 
 ./print-2d $MATRIX
 
-./stencil-2d $ITTR $MATRIX $SERIAL_OUT $SERIAL_ALL
-./pth-stencil-2d $ITTR $MATRIX $PTH_OUT 0 3 $PTH_ALL
-./omp-stencil-2d $ITTR $MATRIX $OMP_OUT 0 3 $OMP_ALL
+./stencil-2d $ITTR $MATRIX $SERIAL_OUT $DEBUG
+./pth-stencil-2d $ITTR $MATRIX $PTH_OUT $DEBUG 3 
+./omp-stencil-2d $ITTR $MATRIX $OMP_OUT $DEBUG 3 
 
 ./print-2d $SERIAL_OUT
 echo "--------------------------------------------------------------------------"

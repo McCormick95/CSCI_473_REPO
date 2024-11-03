@@ -6,6 +6,8 @@ int main(int argc, char *argv[]){
     int rows; 
     int cols;
     int ittr = 0;
+    int debug_flag = -1;
+    int print_all_status = 0;
     double temp;
     double **A;
     double **B;
@@ -16,10 +18,19 @@ int main(int argc, char *argv[]){
     ittr = atoi(argv[1]);
     f_in = argv[2];
     f_out = argv[3];
-    f_all_ittr = argv[4];
+    debug_flag = atoi(argv[4]);
 
-    if(argc != 5 || ittr <= 0 || f_in == NULL || f_out == NULL || f_all_ittr == NULL){
-        printf("USAGE: ./stencil-2d <iterations> <input_file> <output_file> <all_iterations>\n");
+    if(argv[5] != NULL){
+        f_all_ittr = argv[5];
+    }
+
+    if(argc < 4 || argc > 5 || ittr <= 0 || f_in == NULL || f_out == NULL || debug_flag < 0 || debug_flag > 2 ){
+        printf("USAGE: ./stencil-2d <iterations> <input_file> <output_file> <debug_level> <all_stacked_file_name.raw (optional)>\n");
+        exit(1);
+    }
+
+    if(f_all_ittr != NULL){
+        print_all_status = 1;
     }
 
     FILE *file_in = fopen(f_in, "r");
@@ -63,16 +74,20 @@ int main(int argc, char *argv[]){
         B[i][cols-1] = A[i][cols-1];
     }
 
-    // print initial state to file for all-iterations
-    FILE *file_out_1 = fopen(f_all_ittr, "w");
-    if(file_out_1 == NULL){
-        perror("ERROR: WHILE OPENING ALL-ITERATIONS FILE");
-        free(A);
-        free(B);
-        return 1;
+    FILE *file_out_1 = NULL;
+    if(print_all_status == 1){
+        // print initial state to file for all-iterations
+        file_out_1 = fopen(f_all_ittr, "w");
+        if(file_out_1 == NULL){
+            perror("ERROR: WHILE OPENING ALL-ITERATIONS FILE");
+            free(A);
+            free(B);
+            return 1;
+        }
+        write_file(&A, rows, cols, ittr, file_out_1, 1);
     }
-    write_file(&A, rows, cols, ittr, file_out_1, 1);
 
+    // APPLY STENCIL 
     for(int i = 0; i < ittr; i++){
         apply_stencil_serial(&A, &B, rows, cols);
         
@@ -80,9 +95,13 @@ int main(int argc, char *argv[]){
         A = B;
         B = temp_ptr;
 
-        write_file(&A, rows, cols, ittr, file_out_1, 0);
+        if(print_all_status == 1){
+            write_file(&A, rows, cols, ittr, file_out_1, 0);
+        }
     }
-    fclose(file_out_1);
+    if(print_all_status == 1){
+        fclose(file_out_1);
+    }
 
     //print final snapshot
     FILE *file_out_2 = fopen(f_out, "w");
