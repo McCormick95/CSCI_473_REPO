@@ -12,10 +12,10 @@ PTH_ALL="all_1.RAW"
 OMP_ALL="all_2.RAW"
 
 MATRIX="matrix_test"
-ROWS=1000
-COLS=1000
-ITTR=100
-DEBUG=0
+ROWS=10
+COLS=10
+ITTR=10
+DEBUG=2
 
 make clean all
 

@@ -97,19 +97,35 @@ int main(int argc, char *argv[]){
         write_file(&A, rows, cols, ittr, file_out_1, 1);
     }
 
+    if(debug_flag == 1){
+        printf("-------- DEBUG lvl 1--------\n");
+        printf("MATRIX: %dx%d (rows x cols) \n", rows, cols);
+        printf("ITERATIONS: %d\n", ittr);
+        printf("FILE IN: %s \n", f_in);
+        printf("FILE OUT: %s \n", f_out);
+
+        if(print_all_status == 1){
+            printf("FILE ALL ITRATIONS: %s \n", f_all_ittr);
+        }
+    }
+
     GET_TIME(start_work_time);
 
     // APPLY STENCIL 
     for(int i = 0; i < ittr; i++){
         apply_stencil_serial(&A, &B, rows, cols);
         
-        double **temp_ptr = A;
-        A = B;
-        B = temp_ptr;
-
         if(print_all_status == 1){
             write_file(&A, rows, cols, ittr, file_out_1, 0);
         }
+        
+        if(debug_flag == 2){
+            print_array(&A, rows, cols, i);
+        }
+
+        double **temp_ptr = A;
+        A = B;
+        B = temp_ptr;
     }
 
     GET_TIME(end_work_time);

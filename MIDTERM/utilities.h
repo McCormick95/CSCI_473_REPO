@@ -19,10 +19,12 @@ typedef struct {
     int cols;
     int iterations;
     int print_all_status;
+    int debug_flag;
     FILE *output_file;
     my_barrier_t *barrier;
 } ThreadData;
 
+void print_array(double ***A, int rows, int cols, int iter);
 // Memory allocation
 void malloc2D(double ***a, int jmax, int imax);
 
@@ -33,6 +35,6 @@ void write_file(double ***A, int rows, int cols, int ittr, FILE *f_name, int fla
 void omp_apply_stencil(double ***A, double ***B, int rows, int cols);
 
 void *pth_apply_stencil(void *arg);
-void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr, int thread_count, FILE *output_file, int print_all_status);
+void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr, int thread_count, FILE *output_file, int print_all_status, int debug_flag);
 
 #endif // UTILITIES_H

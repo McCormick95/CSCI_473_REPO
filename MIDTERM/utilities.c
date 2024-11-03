@@ -5,6 +5,17 @@
 #include "my_barrier.h"
 #include "utilities.h"
 
+void print_array(double ***A, int rows, int cols, int iter){
+    double **a = *A;
+    printf("ITERATION: %d ------------------------------------------------------- \n", iter);
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            printf("%.2f ", a[i][j]); 
+        }
+        printf("\n");
+    }
+}
+
 void malloc2D(double ***a, int jmax, int imax) {
     double **x = (double **)malloc(jmax*sizeof(double *) + jmax*imax*sizeof(double));
     x[0] = (double *)x + jmax;
@@ -106,6 +117,10 @@ void *pth_apply_stencil(void *arg) {
                 write_file(data->B, data->rows, data->cols, data->iterations, data->output_file, 0);
             }
             
+            if(data->debug_flag == 2){
+                print_array(data->B, data->rows, data->cols, iter);
+            }
+            
             // Swap pointers
             double **temp = *(data->A);
             *(data->A) = *(data->B);
@@ -119,7 +134,7 @@ void *pth_apply_stencil(void *arg) {
     return NULL;
 }
 
-void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr, int thread_count, FILE *output_file, int print_all_status) {
+void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr, int thread_count, FILE *output_file, int print_all_status, int debug_flag) {
     double **a = *M_A;
     double **b = *M_B;
 
@@ -150,6 +165,7 @@ void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr,
         thread_data[i].barrier = &barrier;
         thread_data[i].iterations = ittr;
         thread_data[i].print_all_status = print_all_status;
+        thread_data[i].debug_flag = debug_flag;
         thread_data[i].output_file = NULL;
 
         // Calculate block using macros

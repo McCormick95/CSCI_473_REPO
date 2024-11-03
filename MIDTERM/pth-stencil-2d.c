@@ -87,6 +87,19 @@ int main(int argc, char *argv[]){
         B[i][cols-1] = A[i][cols-1];
     }
 
+    if(debug_flag == 1){
+        printf("-------- DEBUG lvl 1--------\n");
+        printf("MATRIX: %dx%d (rows x cols) \n", rows, cols);
+        printf("ITERATIONS: %d\n", ittr);
+        printf("THREAD COUNT: %d \n", thread_count);
+        printf("FILE IN: %s \n", f_in);
+        printf("FILE OUT: %s \n", f_out);
+
+        if(print_all_status == 1){
+            printf("FILE ALL ITRATIONS: %s \n", f_all_ittr);
+        }
+    }
+
     FILE *file_out_1 = NULL;
 
     if(print_all_status == 1){
@@ -103,7 +116,7 @@ int main(int argc, char *argv[]){
 
     GET_TIME(start_work_time);
 
-    run_pth_stencil(&A, &B, rows, cols, ittr, thread_count, file_out_1, print_all_status);
+    run_pth_stencil(&A, &B, rows, cols, ittr, thread_count, file_out_1, print_all_status, debug_flag);
 
     GET_TIME(end_work_time);
 
