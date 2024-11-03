@@ -89,10 +89,10 @@ void *pth_apply_stencil(void *arg) {
         // Process assigned rows
         for(int i = data->start_row; i <= data->end_row; i++) {
             for(int j = 1; j < data->cols-1; j++) {
-                double sum = data->shared->curr[i-1][j-1] + data->shared->curr[i-1][j] + data->shared->curr[i-1][j+1] + 
-                            data->shared->curr[i][j-1]   + data->shared->curr[i][j]   + data->shared->curr[i][j+1]   + 
-                            data->shared->curr[i+1][j-1] + data->shared->curr[i+1][j] + data->shared->curr[i+1][j+1];
-                data->shared->next[i][j] = sum / 9.0;
+                double sum = (*(data->A))[i-1][j-1] + (*(data->A))[i-1][j] + (*(data->A))[i-1][j+1] + 
+                             (*(data->A))[i][j-1]   + (*(data->A))[i][j]   + (*(data->A))[i][j+1]   + 
+                             (*(data->A))[i+1][j-1] + (*(data->A))[i+1][j] + (*(data->A))[i+1][j+1];
+                (*(data->B))[i][j] = sum / 9.0;
             }
         }
         
@@ -103,13 +103,13 @@ void *pth_apply_stencil(void *arg) {
         if (data->start_row == 1) {  // Thread 0
             // Write to file if needed
             if (data->output_file != NULL) {
-                write_file(&data->shared->next, data->rows, data->cols, data->iterations, data->output_file, 0);
+                write_file(data->B, data->rows, data->cols, data->iterations, data->output_file, 0);
             }
             
             // Swap pointers
-            double **temp = data->shared->curr;
-            data->shared->curr = data->shared->next;
-            data->shared->next = temp;
+            double **temp = *(data->A);
+            *(data->A) = *(data->B);
+            *(data->B) = temp;
         }
         
         // Second barrier: wait for swap to complete
@@ -119,20 +119,15 @@ void *pth_apply_stencil(void *arg) {
     return NULL;
 }
 
-void run_pth_stencil(double ***A, double ***B, int rows, int cols, int ittr, int thread_count, FILE *output_file) {
-    double **a = *A;
-    double **b = *B;
+void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr, int thread_count, FILE *output_file) {
+    double **a = *M_A;
+    double **b = *M_B;
 
     my_barrier_t barrier;
     my_barrier_init(&barrier, 0, thread_count);
 
     pthread_t *threads = malloc(thread_count * sizeof(pthread_t));
     ThreadData *thread_data = malloc(thread_count * sizeof(ThreadData));
-    
-    // Create shared array structure
-    SharedArrays *shared = malloc(sizeof(SharedArrays));
-    shared->curr = a;
-    shared->next = b;
 
     // Initialize boundaries for array B
     for(int j = 0; j < cols; j++) {
@@ -144,8 +139,12 @@ void run_pth_stencil(double ***A, double ***B, int rows, int cols, int ittr, int
         b[i][cols-1] = a[i][cols-1];
     }
 
+    *M_A = a;
+    *M_B = b;
+
     for(int i = 0; i < thread_count; i++) {
-        thread_data[i].shared = shared;
+        thread_data[i].A = M_A;
+        thread_data[i].B = M_B;
         thread_data[i].cols = cols;
         thread_data[i].rows = rows;
         thread_data[i].barrier = &barrier;
@@ -170,11 +169,10 @@ void run_pth_stencil(double ***A, double ***B, int rows, int cols, int ittr, int
     }
 
     // Update the final array pointers
-    *A = shared->curr;
-    *B = shared->next;
+    *M_A = *(thread_data[0].A);
+    *M_B = *(thread_data[0].B);
 
     // Clean up
-    free(shared);
     free(threads);
     free(thread_data);
 }

@@ -11,12 +11,8 @@
                      (BLOCK_HIGH(id,p,n)-BLOCK_LOW(id,p,n)+1)
 
 typedef struct {
-    double **curr;  // Current array being read from
-    double **next;  // Next array being written to
-} SharedArrays;
-
-typedef struct {
-    SharedArrays *shared;  // Shared array pointers
+    double ***A;
+    double ***B;
     int start_row;
     int end_row;
     int rows;

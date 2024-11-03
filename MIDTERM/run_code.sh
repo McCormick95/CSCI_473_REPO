@@ -20,8 +20,7 @@ make clean all
 
 ./make-2d $ROWS $COLS $MATRIX
 
-./print-2d matrix_1
-
+./print-2d $MATRIX
 
 ./stencil-2d $ITTR $MATRIX $SERIAL_OUT $SERIAL_ALL
 ./pth-stencil-2d $ITTR $MATRIX $PTH_OUT 0 3 $PTH_ALL
