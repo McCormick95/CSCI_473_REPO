@@ -97,8 +97,8 @@ int main(int argc, char *argv[]){
         write_file(&A, rows, cols, ittr, file_out_1, 1);
     }
 
-    if(debug_flag == 1){
-        printf("-------- DEBUG lvl 1--------\n");
+    if(debug_flag == 1 || debug_flag == 2){
+        printf("-------- DEBUG --------\n");
         printf("MATRIX: %dx%d (rows x cols) \n", rows, cols);
         printf("ITERATIONS: %d\n", ittr);
         printf("FILE IN: %s \n", f_in);
@@ -107,6 +107,7 @@ int main(int argc, char *argv[]){
         if(print_all_status == 1){
             printf("FILE ALL ITRATIONS: %s \n", f_all_ittr);
         }
+        printf("\n");
     }
 
     GET_TIME(start_work_time);

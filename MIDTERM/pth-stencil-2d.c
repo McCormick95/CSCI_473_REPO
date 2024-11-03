@@ -87,8 +87,8 @@ int main(int argc, char *argv[]){
         B[i][cols-1] = A[i][cols-1];
     }
 
-    if(debug_flag == 1){
-        printf("-------- DEBUG lvl 1--------\n");
+    if(debug_flag == 1 || debug_flag == 2){
+        printf("-------- DEBUG --------\n");
         printf("MATRIX: %dx%d (rows x cols) \n", rows, cols);
         printf("ITERATIONS: %d\n", ittr);
         printf("THREAD COUNT: %d \n", thread_count);
@@ -98,6 +98,7 @@ int main(int argc, char *argv[]){
         if(print_all_status == 1){
             printf("FILE ALL ITRATIONS: %s \n", f_all_ittr);
         }
+        printf("\n");
     }
 
     FILE *file_out_1 = NULL;

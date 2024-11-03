@@ -14,6 +14,7 @@ void print_array(double ***A, int rows, int cols, int iter){
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 void malloc2D(double ***a, int jmax, int imax) {
