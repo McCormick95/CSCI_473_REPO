@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <omp.h>
 #include "utilities.h"
+#include "timer.h"
 
 int main(int argc, char *argv[]){
     int rows; 
@@ -10,12 +11,21 @@ int main(int argc, char *argv[]){
     int debug_flag = -1;
     int print_all_status = 0;
     int thread_count = -1;
+    double start_time;
+    double end_time;
+    double start_work_time;
+    double end_work_time;
+    double work_time_total;
+    double total_time;
+    double other_time;
     double temp;
     double **A;
     double **B;
     char* f_in = NULL; // input file
     char* f_out = NULL; // output file
     char* f_all_ittr = NULL; // all-iterations
+
+    GET_TIME(start_time);
 
     ittr = atoi(argv[1]);
     f_in = argv[2];
@@ -90,6 +100,8 @@ int main(int argc, char *argv[]){
         write_file(&A, rows, cols, ittr, file_out_1, 1);
     }
 
+    GET_TIME(start_work_time);
+
     #pragma omp parallel default(none) shared(A, B, rows, cols, ittr, file_out_1, print_all_status) 
     {
         for(int i = 0; i < ittr; i++){
@@ -107,6 +119,9 @@ int main(int argc, char *argv[]){
             }
         }
     }
+
+    GET_TIME(end_work_time);
+
     if(print_all_status == 1){
         fclose(file_out_1);
     }
@@ -124,5 +139,14 @@ int main(int argc, char *argv[]){
 
     free(A);
     free(B);
+
+    GET_TIME(end_time);
+
+    work_time_total = end_work_time - start_work_time;
+    total_time = end_time - start_time;
+    other_time = total_time - work_time_total;
+
+    printf("OMP-    TOTAL: %f, WORK: %f, OTHER: %f \n", total_time, work_time_total, other_time);
+
     return 0;
 }

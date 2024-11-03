@@ -12,27 +12,31 @@ PTH_ALL="all_1.RAW"
 OMP_ALL="all_2.RAW"
 
 MATRIX="matrix_test"
-ROWS="10"
-COLS="10"
-ITTR="100"
+ROWS=1000
+COLS=1000
+ITTR=100
 DEBUG=0
 
 make clean all
 
 ./make-2d $ROWS $COLS $MATRIX
 
-./print-2d $MATRIX
+# echo "INITIAL MATRIX -----------------------------------------------------------"
+# ./print-2d $MATRIX
 
+echo "--------------------------------------------------------------------------"
 ./stencil-2d $ITTR $MATRIX $SERIAL_OUT $DEBUG
 ./pth-stencil-2d $ITTR $MATRIX $PTH_OUT $DEBUG 3 
 ./omp-stencil-2d $ITTR $MATRIX $OMP_OUT $DEBUG 3 
 
-./print-2d $SERIAL_OUT
-echo "--------------------------------------------------------------------------"
-./print-2d $PTH_OUT
-echo "--------------------------------------------------------------------------"
-./print-2d $OMP_OUT
-echo "--------------------------------------------------------------------------"
+# echo "--------------------------------------------------------------------------"
+# ./print-2d $SERIAL_OUT
+# echo "--------------------------------------------------------------------------"
+# ./print-2d $PTH_OUT
+# echo "--------------------------------------------------------------------------"
+# ./print-2d $OMP_OUT
+# echo "--------------------------------------------------------------------------"
+
 
 echo "DIFFING OUTPUT FILES...."
 if diff3 "$SERIAL_OUT" "$PTH_OUT" "$OMP_OUT" > /dev/null 2>&1; then
@@ -51,6 +55,7 @@ else
         echo -e "\t${RED}All three files are different.${NC}"
     fi
 fi
+echo "TESTING COMPLETE ---------------------------------------------------------"
 
 
 

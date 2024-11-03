@@ -156,7 +156,7 @@ void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr,
         thread_data[i].start_row = BLOCK_LOW(i, thread_count, rows-2) + 1;
         thread_data[i].end_row = BLOCK_HIGH(i, thread_count, rows-2) + 1;
 
-        printf("Thread %d handling rows %d to %d\n", i, thread_data[i].start_row, thread_data[i].end_row);  // Debug print
+        // printf("Thread %d handling rows %d to %d\n", i, thread_data[i].start_row, thread_data[i].end_row);  // Debug print
 
         int rc = pthread_create(&threads[i], NULL, pth_apply_stencil, (void*)&thread_data[i]);
         if(rc) {

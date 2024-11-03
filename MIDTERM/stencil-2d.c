@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "utilities.h"
+#include "timer.h"
 
 int main(int argc, char *argv[]){
     int rows; 
@@ -8,12 +9,21 @@ int main(int argc, char *argv[]){
     int ittr = 0;
     int debug_flag = -1;
     int print_all_status = 0;
+    double start_time;
+    double end_time;
+    double start_work_time;
+    double end_work_time;
+    double work_time_total;
+    double total_time;
+    double other_time;
     double temp;
     double **A;
     double **B;
     char* f_in = NULL; // input file
     char* f_out = NULL; // output file
     char* f_all_ittr = NULL; // all-iterations
+
+    GET_TIME(start_time);
 
     ittr = atoi(argv[1]);
     f_in = argv[2];
@@ -87,6 +97,8 @@ int main(int argc, char *argv[]){
         write_file(&A, rows, cols, ittr, file_out_1, 1);
     }
 
+    GET_TIME(start_work_time);
+
     // APPLY STENCIL 
     for(int i = 0; i < ittr; i++){
         apply_stencil_serial(&A, &B, rows, cols);
@@ -99,6 +111,9 @@ int main(int argc, char *argv[]){
             write_file(&A, rows, cols, ittr, file_out_1, 0);
         }
     }
+
+    GET_TIME(end_work_time);
+
     if(print_all_status == 1){
         fclose(file_out_1);
     }
@@ -116,5 +131,14 @@ int main(int argc, char *argv[]){
 
     free(A);
     free(B);
+
+    GET_TIME(end_time);
+
+    work_time_total = end_work_time - start_work_time;
+    total_time = end_time - start_time;
+    other_time = total_time - work_time_total;
+
+    printf("SERIAL- TOTAL: %f, WORK: %f, OTHER: %f \n", total_time, work_time_total, other_time);
+
     return 0;
 }
