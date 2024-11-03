@@ -15,7 +15,7 @@ MATRIX="matrix_test"
 ROWS=100
 COLS=100
 ITTR=10
-DEBUG=0
+DEBUG=3
 
 make clean all
 

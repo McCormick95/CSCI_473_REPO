@@ -34,8 +34,9 @@ int main(int argc, char *argv[]){
     thread_count = atoi(argv[5]);
     f_all_ittr = argv[6];
 
-    if(argc < 5 || argc > 6 || ittr <= 0 || f_in == NULL || f_out == NULL || debug_flag < 0 || debug_flag > 2 || thread_count <= 0){
+    if(argc < 5 || argc > 6 || ittr <= 0 || f_in == NULL || f_out == NULL || debug_flag < 0 || debug_flag > 3 || thread_count <= 0){
         printf("USAGE: ./omp-stencil-2d <iterations> <input_file> <output_file> <debug_level> <num_threads> <all_stacked_file_name.raw (optional)>\n");
+        exit(1);
     }
 
     if(f_all_ittr != NULL){
@@ -164,7 +165,11 @@ int main(int argc, char *argv[]){
     total_time = end_time - start_time;
     other_time = total_time - work_time_total;
 
-    printf("OMP-    TOTAL: %f, WORK: %f, OTHER: %f \n", total_time, work_time_total, other_time);
-
+    if(debug_flag == 3){
+        printf("%f,%f,%f \n", total_time, work_time_total, other_time);
+    }
+    else{
+        printf("OMP-    TOTAL: %f, WORK: %f, OTHER: %f \n", total_time, work_time_total, other_time);
+    }
     return 0;
 }

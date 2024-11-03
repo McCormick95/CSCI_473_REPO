@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
         f_all_ittr = argv[5];
     }
 
-    if(argc < 4 || argc > 5 || ittr <= 0 || f_in == NULL || f_out == NULL || debug_flag < 0 || debug_flag > 2 ){
+    if(argc < 4 || argc > 5 || ittr <= 0 || f_in == NULL || f_out == NULL || debug_flag < 0 || debug_flag > 3 ){
         printf("USAGE: ./stencil-2d <iterations> <input_file> <output_file> <debug_level> <all_stacked_file_name.raw (optional)>\n");
         exit(1);
     }
@@ -155,7 +155,12 @@ int main(int argc, char *argv[]){
     total_time = end_time - start_time;
     other_time = total_time - work_time_total;
 
-    printf("SERIAL- TOTAL: %f, WORK: %f, OTHER: %f \n", total_time, work_time_total, other_time);
+    if(debug_flag == 3){
+        printf("%f,%f,%f \n", total_time, work_time_total, other_time);
+    }
+    else{
+        printf("SERIAL- TOTAL: %f, WORK: %f, OTHER: %f \n", total_time, work_time_total, other_time);
+    }
 
     return 0;
 }
