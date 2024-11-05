@@ -135,7 +135,8 @@ void *pth_apply_stencil(void *arg) {
     return NULL;
 }
 
-void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr, int thread_count, FILE *output_file, int print_all_status, int debug_flag) {
+void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr, \
+        int thread_count, FILE *output_file, int print_all_status, int debug_flag) {
     double **a = *M_A;
     double **b = *M_B;
 
@@ -167,7 +168,7 @@ void run_pth_stencil(double ***M_A, double ***M_B, int rows, int cols, int ittr,
         thread_data[i].iterations = ittr;
         thread_data[i].print_all_status = print_all_status;
         thread_data[i].debug_flag = debug_flag;
-        thread_data[i].output_file = NULL;
+        thread_data[i].output_file = output_file;
 
         // Calculate block using macros
         thread_data[i].start_row = BLOCK_LOW(i, thread_count, rows-2) + 1;
