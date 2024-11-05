@@ -1,8 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, AutoLocator
 import os
 import argparse
 import sys
+import numpy as np
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Analyze performance data from stencil implementations.')
@@ -10,6 +12,15 @@ def parse_arguments():
     parser.add_argument('-o', '--output', default='plots', 
                         help='Directory to save output plots (default: plots)')
     return parser.parse_args()
+
+def format_time_ticks(x, p):
+    """Format time values for tick labels"""
+    if x < 1:
+        return f'{x:.2f}'
+    elif x < 10:
+        return f'{x:.1f}'
+    else:
+        return f'{int(x)}'
 
 def prepare_data(csv_file):
     try:
@@ -22,6 +33,7 @@ def prepare_data(csv_file):
         sys.exit(1)
     
     df['matrix_size'] = df['ROWS'].astype(str) + 'x' + df['COLS'].astype(str)
+    df['size_num'] = df['ROWS'].astype(int)
     
     results = []
     for size in df['matrix_size'].unique():
@@ -33,38 +45,54 @@ def prepare_data(csv_file):
     
     return pd.concat(results)
 
+def setup_y_axis(plt, data_min, data_max, is_log=True):
+    """Setup y-axis with appropriate tick marks and labels"""
+    if is_log:
+        # For log scale, generate ticks at more intermediate points
+        log_min = np.floor(np.log10(data_min))
+        log_max = np.ceil(np.log10(data_max))
+        
+        major_ticks = []
+        minor_ticks = []
+        
+        for exp in range(int(log_min), int(log_max + 1)):
+            major_ticks.append(10**exp)
+            if exp < log_max:
+                for i in range(2, 10):
+                    minor_ticks.append(i * 10**exp)
+        
+        plt.gca().yaxis.set_major_locator(plt.FixedLocator(major_ticks))
+        plt.gca().yaxis.set_minor_locator(plt.FixedLocator(minor_ticks))
+        plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(format_time_ticks))
+    else:
+        # For linear scale, use AutoLocator with more ticks
+        plt.gca().yaxis.set_major_locator(AutoLocator())
+        plt.gca().yaxis.set_minor_locator(AutoMinorLocator())
+        plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(format_time_ticks))
+
 def create_metric_plots(df, metric, ylabel, title_prefix, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     
-    # Set default plot style
     plt.style.use('default')
-    
-    # Colors and markers for different matrix sizes
     colors = ['blue', 'green', 'red', 'purple', 'orange', 'brown']
     markers = ['o', 's', '^', 'D', 'v', 'p']
     
-    # Create separate plots for OMP and PTH
     for run_type in ['OMP', 'PTH']:
         plt.figure(figsize=(12, 8))
         
-        # Filter data for this implementation
         impl_data = df[df['RUN_TYPE'] == run_type]
         
-        # Add ideal lines for speedup and efficiency
         max_threads = max(impl_data['P'])
         if metric == 'speedup':
-            # Add ideal speedup line (y=x)
             x_ideal = range(1, max_threads + 1)
             plt.plot(x_ideal, x_ideal, 'k--', label='Ideal Speedup', alpha=0.7)
         elif metric == 'efficiency':
-            # Add ideal efficiency line (y=1)
             plt.axhline(y=1, color='k', linestyle='--', label='Ideal Efficiency', alpha=0.7)
         
-        # Plot each matrix size as a separate line
         for (size, color, marker) in zip(sorted(df['matrix_size'].unique()), colors, markers):
             size_data = impl_data[impl_data['matrix_size'] == size]
             
-            if not size_data.empty:  # Check if we have data for this combination
+            if not size_data.empty:
                 plt.plot(size_data['P'], size_data[metric], 
                         marker=marker, 
                         color=color,
@@ -74,14 +102,16 @@ def create_metric_plots(df, metric, ylabel, title_prefix, output_dir):
         
         if metric == 'TOTAL':
             plt.yscale('log')
+            setup_y_axis(plt, impl_data[metric].min(), impl_data[metric].max(), True)
             
-            # Add serial reference lines for each matrix size
             for size, color in zip(sorted(df['matrix_size'].unique()), colors):
                 serial_data = df[(df['RUN_TYPE'] == 'SERIAL') & (df['matrix_size'] == size)]
                 if not serial_data.empty:
                     serial_time = serial_data['TOTAL'].iloc[0]
                     plt.axhline(y=serial_time, color=color, linestyle='--', 
                               alpha=0.5, linewidth=1)
+        else:
+            setup_y_axis(plt, impl_data[metric].min(), impl_data[metric].max(), False)
         
         plt.title(f"{title_prefix} - {run_type} Implementation")
         plt.xlabel("Number of Threads/Processes")
@@ -89,10 +119,8 @@ def create_metric_plots(df, metric, ylabel, title_prefix, output_dir):
         plt.grid(True, linestyle='--', alpha=0.7)
         plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         
-        # Set x-axis to show all thread counts
         plt.xticks(sorted(df['P'].unique()))
         
-        # Start y-axis from 0 for speedup and efficiency
         if metric in ['speedup', 'efficiency']:
             plt.ylim(bottom=0)
         
@@ -286,6 +314,68 @@ def create_e_value_plots(df, e_df, output_dir):
                 for _, row in size_data.iterrows():
                     print(f"{row['Threads']}\t{row[metric]:.3f}")
 
+def create_size_comparison_plot(df, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+    
+    plt.figure(figsize=(12, 8))
+    
+    implementations = {
+        'SERIAL': ('blue', 'o', 'Serial Implementation'),
+        'OMP': ('green', 's', 'OpenMP Implementation'),
+        'PTH': ('red', '^', 'Pthreads Implementation')
+    }
+    
+    all_times = []
+    
+    for run_type, (color, marker, label) in implementations.items():
+        if run_type in ['OMP', 'PTH']:
+            best_times = df[df['RUN_TYPE'] == run_type].groupby('size_num')['TOTAL'].min()
+            plt.plot(best_times.index, best_times.values,
+                    marker=marker,
+                    color=color,
+                    label=f'{label} (Best Parallel)',
+                    linewidth=2,
+                    markersize=8)
+            all_times.extend(best_times.values)
+            
+            single_thread = df[(df['RUN_TYPE'] == run_type) & (df['P'] == 1)]
+            plt.plot(single_thread['size_num'], single_thread['TOTAL'],
+                    marker=marker,
+                    color=color,
+                    linestyle='--',
+                    label=f'{label} (Single Thread)',
+                    linewidth=2,
+                    markersize=8)
+            all_times.extend(single_thread['TOTAL'].values)
+        else:
+            serial_data = df[df['RUN_TYPE'] == run_type]
+            plt.plot(serial_data['size_num'], serial_data['TOTAL'],
+                    marker=marker,
+                    color=color,
+                    label=label,
+                    linewidth=2,
+                    markersize=8)
+            all_times.extend(serial_data['TOTAL'].values)
+    
+    plt.title('Execution Time vs Matrix Size Comparison')
+    plt.xlabel('Matrix Size (N for NxN matrix)')
+    plt.ylabel('Execution Time (seconds)')
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.legend()
+    
+    plt.xscale('log')
+    plt.yscale('log')
+    
+    # Setup enhanced y-axis ticks
+    setup_y_axis(plt, min(all_times), max(all_times), True)
+    
+    sizes = sorted(df['size_num'].unique())
+    plt.xticks(sizes, sizes)
+    
+    plt.tight_layout()
+    plt.savefig(f"{output_dir}/size_comparison.png", dpi=300, bbox_inches='tight')
+    plt.close()
+
 def main():
     args = parse_arguments()
     
@@ -302,6 +392,7 @@ def main():
     create_component_time_plots(df, args.output)
     create_timing_breakdown_plots(df, args.output)
     create_e_value_plots(df, e_df, args.output)
+    create_size_comparison_plot(df, args.output)
     
     print_summary(df)
     
