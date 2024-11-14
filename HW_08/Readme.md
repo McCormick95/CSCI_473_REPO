@@ -1,6 +1,3 @@
-I'll create a comprehensive README.md that explains the project, its components, and how to use it.
-
-```markdown
 # Parallel Matrix Operations with MPI
 
 This project implements parallel matrix operations using MPI (Message Passing Interface). It focuses on row-striped matrix distribution with halo rows for distributed computing environments.
@@ -110,4 +107,4 @@ The project includes proper memory management:
 - Matrix files are stored in binary format
 - The project supports double-precision floating-point values
 - Error checking is implemented for file operations and MPI communications
-```
+
