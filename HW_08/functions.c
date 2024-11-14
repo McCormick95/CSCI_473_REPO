@@ -26,7 +26,6 @@ void read_row_striped_matrix_halo(
    MPI_Comm_rank(comm, &id);
    datum_size = get_size(dtype);
 
-   // Read dimensions
    if (id == (p-1)) {
       infileptr = fopen(s, "r");
       if (infileptr == NULL) *m = 0;
@@ -47,18 +46,14 @@ void read_row_striped_matrix_halo(
         MPI_Abort(comm, EXIT_FAILURE); 
    }
 
-   // Determine halo rows
    halo_top = (id == 0) ? 0 : 1;
    halo_bottom = (id == p-1) ? 0 : 1;
 
-   // Calculate total local rows including halos
    local_rows = BLOCK_SIZE(id, p, *m);
    int total_rows = local_rows + halo_top + halo_bottom;
 
-   // Allocate space for the local array including halos
    my_allocate2d(id, total_rows, (void **)&storage, datum_size, n, subs, PTR_SIZE);
 
-   // Initialize halo rows
    if(halo_top) {
       for(i = 0; i < *n; i++) {
          ((double*)(*subs)[0])[i] = -1.0;
@@ -70,22 +65,17 @@ void read_row_striped_matrix_halo(
       }
    }
 
-   // Read and distribute data
    if (id == (p-1)) {
-      // Process p-1 reads and distributes data
       for (i = 0; i < p-1; i++) {
-         // Allocate temporary buffer for reading
          void* temp = my_malloc(id, BLOCK_SIZE(i, p, *m) * *n * datum_size);
          fread(temp, datum_size, BLOCK_SIZE(i, p, *m) * *n, infileptr);
          MPI_Send(temp, BLOCK_SIZE(i, p, *m) * *n, dtype, i, DATA_MSG, comm);
          free(temp);
       }
-      // Read own data
       fread((char*)storage + halo_top * *n * datum_size, 
             datum_size, local_rows * *n, infileptr);
       fclose(infileptr);
    } else {
-      // Other processes receive their data into correct position (after top halo)
       MPI_Recv((char*)storage + halo_top * *n * datum_size, 
                local_rows * *n, dtype, p-1, DATA_MSG, comm, &status);
    }
@@ -125,15 +115,15 @@ void print_row_striped_matrix_halo(void **a, MPI_Datatype dtype, int m, int n, M
     if (!id) {
         print_submatrix(a, dtype, local_rows, n);
         if (p > 1) {
-            max_block_size = BLOCK_SIZE(p-1,p,m) + 2; // Account for maximum possible halo rows
+            max_block_size = BLOCK_SIZE(p-1,p,m) + 2; 
             my_allocate2d(id, max_block_size, (void **)&bstorage, datum_size, &n, (void ***)&b, datum_size);
 
             for (i = 1; i < p; i++) {
                 MPI_Send(&prompt, 1, MPI_INT, i, PROMPT_MSG, MPI_COMM_WORLD);
                 
                 int recv_rows = BLOCK_SIZE(i,p,m);
-                if (i != p-1) recv_rows += 2; // Add halo rows for non-last process
-                else recv_rows += 1;  // Last process only needs top halo
+                if (i != p-1) recv_rows += 2; 
+                else recv_rows += 1;  
 
                 MPI_Recv(*b, recv_rows * n, dtype, i, RESPONSE_MSG, MPI_COMM_WORLD, &status);
                 print_submatrix(b, dtype, recv_rows, n);
@@ -170,7 +160,6 @@ void write_row_striped_matrix_halo(
     MPI_Comm_size(comm, &p);
     datum_size = get_size(dtype);
 
-    // Calculate local rows including halos
     if(id == 0) {
         halo_top = 0;
     } else {
@@ -195,12 +184,10 @@ void write_row_striped_matrix_halo(
         fwrite(&n, sizeof(int), 1, outfileptr);
         fclose(outfileptr);
 
-        // Write process 0's data (skipping halo rows)
         write_submatrix(file_name, (void **)&a[0], dtype, BLOCK_SIZE(id,p,m), n);
 
         if(p > 1) {
-            // Allocate buffer for receiving data from other processes
-            max_block_size = BLOCK_SIZE(p-1,p,m) + 2;  // +2 for maximum possible halos
+            max_block_size = BLOCK_SIZE(p-1,p,m) + 2;  
             my_allocate2d(id, max_block_size, (void **)&bstorage, datum_size, &n, (void ***)&b, datum_size);
 
             for(i = 1; i < p; i++) {
@@ -212,9 +199,9 @@ void write_row_striped_matrix_halo(
             my_free(b);
         }
     } else {
-        int rows_to_send = BLOCK_SIZE(id,p,m);  // Don't include halos in the file
+        int rows_to_send = BLOCK_SIZE(id,p,m);  
         MPI_Recv(&prompt, 1, MPI_INT, 0, PROMPT_MSG, comm, &status);
-        // Send only the non-halo rows
+
         MPI_Send(a[halo_top], rows_to_send * n, dtype, 0, RESPONSE_MSG, comm);
     }
 }
