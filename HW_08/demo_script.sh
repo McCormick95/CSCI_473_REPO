@@ -10,7 +10,7 @@ make clean all
 echo "---------------------------------------------------------------------"
 # mpirun -np 2 valgrind ./test-mpi-read A.dat B.dat C.dat
 
-mpirun -np 4 ./test-mpi-read A.dat B.dat C.dat
+mpirun -np 3 ./test-mpi-read A.dat B.dat C.dat
 
 # ls -l
 echo "---------------------------------------------------------------------"

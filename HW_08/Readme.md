@@ -20,7 +20,7 @@ The project provides functionality for:
 
 ### Build and Test
 - `Makefile`: Compilation rules and dependencies
-- `test_script.bash`: Basic testing script for 8x8 matrices
+- `demo_script.bash`: Basic testing demo with 8x8 matrices
 - `test_run_all.sh`: Comprehensive testing script with various matrix sizes and process counts
 
 ## Requirements
@@ -68,9 +68,9 @@ mpirun -np 4 ./test-mpi-read A.dat B.dat C.dat
 
 ### Running Test Scripts
 
-Basic test (8x8 matrix):
+Basic demo (8x8 matrix, np=3):
 ```bash
-./test_script.bash
+./demo_script.sh
 ```
 
 Comprehensive testing:
