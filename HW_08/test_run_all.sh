@@ -29,3 +29,7 @@ done
 echo "Testing Completed"
 
 make clean 
+
+rm "A.dat"
+rm "B.dat"
+rm "C.dat"
