@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     
     // just print out the matrix, showing the Quinn's version will work
     print_row_striped_matrix((void**)A, MPI_DOUBLE, rows, cols, MPI_COMM_WORLD);
-    
+    printf("-------------------------------------------------------------------- \n");
     //void write_row_striped_matrix (
     //   char* outFile,       /* IN - output file name */
     //   void **a,            /* IN - 2D array */
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     
     // print out the actual matrix in memory, which includes the halos, so that we can see that it is there.
     print_row_striped_matrix_halo((void**)A2, MPI_DOUBLE, rows2, cols2, MPI_COMM_WORLD);
-    
+    // printf("-------------------------------------------------------------------- \n");
     // then, given that A2 is a halo version of the matrix, write the data to the file
     // but the data in the file, will not have the halo information, so that it will match the
     // format that we need for the final state of the 2d heat plate.

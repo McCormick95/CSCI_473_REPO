@@ -1,4 +1,4 @@
-CFLAGS=-g -Wall -Wstrict-prototypes
+CFLAGS=-g -Wall -Wstrict-prototypes 
 PROGS=test-mpi-read make-2d print-2d
 OBJECTS=test-mpi-read.o functions.o
 LDFLAGS=-lm

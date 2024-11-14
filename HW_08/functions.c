@@ -12,17 +12,138 @@ void read_row_striped_matrix_halo(
    int         *n,        /* OUT - Matrix cols */
    MPI_Comm     comm)     /* IN - Communicator */
 {
+   int          datum_size;   
+   int          i;
+   int          id;           
+   FILE        *infileptr;    
+   int          local_rows;   
+   int          p;            
+   MPI_Status   status;       
+   void *storage;
+   int halo_top, halo_bottom;
 
+   MPI_Comm_size(comm, &p);
+   MPI_Comm_rank(comm, &id);
+   datum_size = get_size(dtype);
+
+   // Read dimensions
+   if (id == (p-1)) {
+      infileptr = fopen(s, "r");
+      if (infileptr == NULL) *m = 0;
+      else {
+         fread(m, sizeof(int), 1, infileptr);
+         fread(n, sizeof(int), 1, infileptr);
+      }      
+   }
+
+   MPI_Bcast(m, 1, MPI_INT, p-1, comm);
+   if (!(*m)) MPI_Abort(MPI_COMM_WORLD, OPEN_FILE_ERROR);
+   MPI_Bcast(n, 1, MPI_INT, p-1, comm);
+
+   if(p > *m) {
+        if(id == 0) {
+            printf("ERROR: number of processes (%d) exceeds number of rows (%d). Exiting... \n", p, *m);
+        }
+        MPI_Abort(comm, EXIT_FAILURE); 
+   }
+
+   // Determine halo rows
+   halo_top = (id == 0) ? 0 : 1;
+   halo_bottom = (id == p-1) ? 0 : 1;
+
+   // Calculate total local rows including halos
+   local_rows = BLOCK_SIZE(id, p, *m);
+   int total_rows = local_rows + halo_top + halo_bottom;
+
+   // Allocate space for the local array including halos
+   my_allocate2d(id, total_rows, (void **)&storage, datum_size, n, subs, PTR_SIZE);
+
+   // Initialize halo rows
+   if(halo_top) {
+      for(i = 0; i < *n; i++) {
+         ((double*)(*subs)[0])[i] = -1.0;
+      }
+   }
+   if(halo_bottom) {
+      for(i = 0; i < *n; i++) {
+         ((double*)(*subs)[total_rows - 1])[i] = -1.0;
+      }
+   }
+
+   // Read and distribute data
+   if (id == (p-1)) {
+      // Process p-1 reads and distributes data
+      for (i = 0; i < p-1; i++) {
+         // Allocate temporary buffer for reading
+         void* temp = my_malloc(id, BLOCK_SIZE(i, p, *m) * *n * datum_size);
+         fread(temp, datum_size, BLOCK_SIZE(i, p, *m) * *n, infileptr);
+         MPI_Send(temp, BLOCK_SIZE(i, p, *m) * *n, dtype, i, DATA_MSG, comm);
+         free(temp);
+      }
+      // Read own data
+      fread((char*)storage + halo_top * *n * datum_size, 
+            datum_size, local_rows * *n, infileptr);
+      fclose(infileptr);
+   } else {
+      // Other processes receive their data into correct position (after top halo)
+      MPI_Recv((char*)storage + halo_top * *n * datum_size, 
+               local_rows * *n, dtype, p-1, DATA_MSG, comm, &status);
+   }
 }
 
-void print_row_striped_matrix_halo(
-   void **a,            /* IN - 2D array */
-   MPI_Datatype dtype,  /* IN - Matrix element type */
-   int m,               /* IN - Matrix rows */
-   int n,               /* IN - Matrix cols */
-   MPI_Comm comm)       /* IN - Communicator */
-{
+void print_row_striped_matrix_halo(void **a, MPI_Datatype dtype, int m, int n, MPI_Comm comm) {
+    MPI_Status status;
+    void *bstorage;
+    void **b;
+    int datum_size;
+    int i;
+    int id;
+    int local_rows;
+    int max_block_size;
+    int prompt;
+    int p;
+    int halo_top, halo_bottom;
 
+    MPI_Comm_rank(comm, &id);
+    MPI_Comm_size(comm, &p);
+    datum_size = get_size(dtype);
+
+    if (id == 0) {
+        halo_top = 0;
+    } else {
+        halo_top = 1;
+    }
+
+    if (id == p-1) {
+        halo_bottom = 0;
+    } else {
+        halo_bottom = 1;
+    }
+
+    local_rows = BLOCK_SIZE(id,p,m) + halo_top + halo_bottom;
+
+    if (!id) {
+        print_submatrix(a, dtype, local_rows, n);
+        if (p > 1) {
+            max_block_size = BLOCK_SIZE(p-1,p,m) + 2; // Account for maximum possible halo rows
+            my_allocate2d(id, max_block_size, (void **)&bstorage, datum_size, &n, (void ***)&b, datum_size);
+
+            for (i = 1; i < p; i++) {
+                MPI_Send(&prompt, 1, MPI_INT, i, PROMPT_MSG, MPI_COMM_WORLD);
+                
+                int recv_rows = BLOCK_SIZE(i,p,m);
+                if (i != p-1) recv_rows += 2; // Add halo rows for non-last process
+                else recv_rows += 1;  // Last process only needs top halo
+
+                MPI_Recv(*b, recv_rows * n, dtype, i, RESPONSE_MSG, MPI_COMM_WORLD, &status);
+                print_submatrix(b, dtype, recv_rows, n);
+            }
+            my_free(b);
+        }
+    } else {
+        MPI_Recv(&prompt, 1, MPI_INT, 0, PROMPT_MSG, MPI_COMM_WORLD, &status);
+        MPI_Send(*a, local_rows * n, dtype, 0, RESPONSE_MSG, MPI_COMM_WORLD);
+    }
 }
 
 void write_row_striped_matrix_halo(
@@ -33,7 +154,69 @@ void write_row_striped_matrix_halo(
    int n,               /* IN - Matrix cols */
    MPI_Comm comm)       /* IN - Communicator */
 {
+    MPI_Status  status;          
+    void       *bstorage = NULL;        
+    void      **b = NULL;               
+    int         datum_size;      
+    int         i;
+    int         id;              
+    int         local_rows;      
+    int         max_block_size;  
+    int         prompt;          
+    int         p;              
+    int         halo_top, halo_bottom;
 
+    MPI_Comm_rank(comm, &id);
+    MPI_Comm_size(comm, &p);
+    datum_size = get_size(dtype);
+
+    // Calculate local rows including halos
+    if(id == 0) {
+        halo_top = 0;
+    } else {
+        halo_top = 1;
+    }
+
+    if(id == p-1) {
+        halo_bottom = 0;
+    } else {
+        halo_bottom = 1;
+    }
+
+    local_rows = BLOCK_SIZE(id,p,m) + halo_top + halo_bottom;
+
+    if(!id) {
+        FILE *outfileptr = fopen(file_name, "w");
+        if(outfileptr == NULL) {
+            printf("Error: Cannot open file %s for writing\n", file_name);
+            MPI_Abort(comm, OPEN_FILE_ERROR);
+        }
+        fwrite(&m, sizeof(int), 1, outfileptr);
+        fwrite(&n, sizeof(int), 1, outfileptr);
+        fclose(outfileptr);
+
+        // Write process 0's data (skipping halo rows)
+        write_submatrix(file_name, (void **)&a[0], dtype, BLOCK_SIZE(id,p,m), n);
+
+        if(p > 1) {
+            // Allocate buffer for receiving data from other processes
+            max_block_size = BLOCK_SIZE(p-1,p,m) + 2;  // +2 for maximum possible halos
+            my_allocate2d(id, max_block_size, (void **)&bstorage, datum_size, &n, (void ***)&b, datum_size);
+
+            for(i = 1; i < p; i++) {
+                int actual_rows = BLOCK_SIZE(i,p,m);
+                MPI_Send(&prompt, 1, MPI_INT, i, PROMPT_MSG, comm);
+                MPI_Recv(bstorage, actual_rows * n, dtype, i, RESPONSE_MSG, comm, &status);
+                write_submatrix(file_name, b, dtype, actual_rows, n);
+            }
+            my_free(b);
+        }
+    } else {
+        int rows_to_send = BLOCK_SIZE(id,p,m);  // Don't include halos in the file
+        MPI_Recv(&prompt, 1, MPI_INT, 0, PROMPT_MSG, comm, &status);
+        // Send only the non-halo rows
+        MPI_Send(a[halo_top], rows_to_send * n, dtype, 0, RESPONSE_MSG, comm);
+    }
 }
 
 /*
@@ -341,19 +524,25 @@ void *my_malloc (
    return buffer;
 }
 
-void my_allocate2d(int id, int local_rows, void **storage, int datum_size, int *n, void ***subs, int ptr_sz){
-   void **lptr;
-   void *rptr;
-   *storage = (void *) my_malloc (id, local_rows * *n * datum_size);
-   *subs = (void **) my_malloc (id, local_rows * ptr_sz);
+void my_allocate2d(int id, int local_rows, void **storage, int datum_size, int *n, void ***subs, int ptr_sz) {
+    if (local_rows <= 0 || *n <= 0) {
+        printf("Error: Invalid dimensions in my_allocate2d: rows=%d, cols=%d\n", local_rows, *n);
+        MPI_Abort(MPI_COMM_WORLD, MALLOC_ERROR);
+    }
 
-   lptr = (void *) &(*subs[0]);
-   rptr = (void *) *storage;
-   int i;
-   for (i = 0; i < local_rows; i++) {
-      *(lptr++)= (void *) rptr;
-      rptr += *n * datum_size;
-   }
+    // Allocate storage for the data
+    *storage = my_malloc(id, local_rows * *n * datum_size);
+    
+    // Allocate array of pointers
+    *subs = my_malloc(id, (local_rows + 1) * ptr_sz); // Add 1 for safety
+    
+    // Set up the pointers
+    char *data_ptr = (char *)*storage;
+    for (int i = 0; i < local_rows; i++) {
+        (*subs)[i] = data_ptr;
+        data_ptr += *n * datum_size;
+    }
+    (*subs)[local_rows] = NULL; // Null terminate for safety
 }
 
 void my_free(void **ptr) {
