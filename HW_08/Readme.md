@@ -18,6 +18,9 @@ The project provides functionality for:
 - `print-2d.c`: Program to display matrices from binary files
 - `test-mpi-read.c`: Main test program for parallel matrix operations
 
+### Documentation
+- `CSCI_473_HW_08.pptx`: PowerPoint presentation explaining the project requirements and implementation details
+
 ### Build and Test
 - `Makefile`: Compilation rules and dependencies
 - `demo_script.bash`: Basic testing demo with 8x8 matrices

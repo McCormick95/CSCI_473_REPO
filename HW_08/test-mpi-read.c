@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     
     // just print out the matrix, showing the Quinn's version will work
     print_row_striped_matrix((void**)A, MPI_DOUBLE, rows, cols, MPI_COMM_WORLD);
-    printf("-------------------------------------------------------------------- \n");
+    // printf("-------------------------------------------------------------------- \n");
     //void write_row_striped_matrix (
     //   char* outFile,       /* IN - output file name */
     //   void **a,            /* IN - 2D array */
